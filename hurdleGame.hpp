@@ -1,5 +1,6 @@
 #pragma once
 #include "gamesInfo.hpp"
+/*start*/
 
 using namespace std;
 
@@ -54,3 +55,5 @@ struct hurdleGame {
         cerr << '\n';
     }
 };
+
+/*end*/

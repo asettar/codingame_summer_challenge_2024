@@ -1,5 +1,5 @@
 #include "header.hpp"
-
+/*start*/
 gamesInfo game;
 
 
@@ -57,3 +57,5 @@ int main()
         cout << ans << endl;
     }
 }
+
+/*end*/

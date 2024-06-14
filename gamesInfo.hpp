@@ -1,6 +1,14 @@
 #pragma once
+/*start*/
 #include <map>
 #include <string> 
+#include <iostream>
+#include <string>
+#include <vector>
+#include <algorithm>
+#include <map>
+#include <cmath>
+using namespace std;
 
 struct hurdleGame;
 struct windGame;
@@ -17,3 +25,4 @@ struct gamesInfo {
     windGame *wind;
     divingGame *diving;
 };
+/*end*/

@@ -1,5 +1,6 @@
 #pragma once
 #include "gamesInfo.hpp"
+/*start*/
 
 struct divingGame {
     int points[3], combo[3];
@@ -42,3 +43,4 @@ struct divingGame {
         game.movesCnt[mp[gpu[0]]] += score;
     }
 };
+/*end*/

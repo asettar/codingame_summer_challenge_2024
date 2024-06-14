@@ -1,7 +1,6 @@
 #pragma once
 #include "gamesInfo.hpp"
-using namespace std;
-
+/*start*/
 struct windGame {
     string gpu;
     int unused;
@@ -59,3 +58,4 @@ struct windGame {
 
     }
 };
+/*end*/
