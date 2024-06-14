@@ -16,9 +16,10 @@ struct windGame {
             cin >> posy[i]; cin.ignore();
         }
         cin >> unused; cin.ignore();
+        if (gpu == "GAME_OVER") game.windCnt++;
         player_x = posx[game.player_idx];
         player_y = posy[game.player_idx];
-        if (gpu == "GAME_OVER") game.windCnt++;
+        player_idx = game.player_idx;
     }
 
     int getMovesLeft() {

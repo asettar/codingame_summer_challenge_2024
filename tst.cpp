@@ -46,6 +46,7 @@ struct divingGame {
         for(int i = 0; i < 3; i++) cin >> combo[i]; cin.ignore();
         cin >> unused; cin.ignore();
         if (gpu == "GAME_OVER") game.diveCnt++;
+        player_idx = game.player_idx;
     }
 
     bool guarentedWin() {
@@ -75,6 +76,7 @@ struct divingGame {
         game.movesCnt[mp[gpu[0]]] += score;
     }
 };
+
 // file-Name: ./hurdleGame.hpp
 // ########################
 // ########################
@@ -151,9 +153,10 @@ struct windGame {
             cin >> posy[i]; cin.ignore();
         }
         cin >> unused; cin.ignore();
+        if (gpu == "GAME_OVER") game.windCnt++;
         player_x = posx[game.player_idx];
         player_y = posy[game.player_idx];
-        if (gpu == "GAME_OVER") game.windCnt++;
+        player_idx = game.player_idx;
     }
 
     int getMovesLeft() {
@@ -197,14 +200,6 @@ struct windGame {
 // ########################
 // ########################
 gamesInfo game;
-
-
-void    playRollerSpeedGame(string &gpu) {
-    int num;
-    for(int i=0; i < 7; i++) cin>>num;cin.ignore();
-}
-
-
 
 void    playGame(int gameNumber) {
     cin >> game.gpu; cin.ignore();

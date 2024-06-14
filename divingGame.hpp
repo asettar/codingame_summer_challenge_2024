@@ -14,6 +14,7 @@ struct divingGame {
         for(int i = 0; i < 3; i++) cin >> combo[i]; cin.ignore();
         cin >> unused; cin.ignore();
         if (gpu == "GAME_OVER") game.diveCnt++;
+        player_idx = game.player_idx;
     }
 
     bool guarentedWin() {
@@ -43,4 +44,5 @@ struct divingGame {
         game.movesCnt[mp[gpu[0]]] += score;
     }
 };
+
 /*end*/
