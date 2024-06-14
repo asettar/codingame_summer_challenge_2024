@@ -33,10 +33,12 @@ struct divingGame {
 
     void    play(gamesInfo &game) {
         if (gpu == "GAME_OVER") return ;
-        if (game.diveCnt >= 3) return ;
         if (gpu.size() == 1) game.diveCnt++;
         map<char, string> mp = {{'L', "LEFT"}, {'R', "RIGHT"}, {'D',  "DOWN"}, {'U', "UP"}};
-        if (guarentedWin()) return ;
+        if (guarentedWin()) {
+            game.diveCnt++;
+            return ;
+        }
         double score = combo[player_idx] + 4;
         cerr << "------Diving----------\n";
         cerr << gpu << ' ' << gpu.size() << endl;

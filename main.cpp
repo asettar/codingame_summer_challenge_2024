@@ -2,23 +2,52 @@
 /*start*/
 gamesInfo game;
 
-void    playGame(int gameNumber) {
+void    checkcheckHurdleDiving() {
+    // firstTime
+    if (!game.diveCnt && !game.windCnt && !game.diving->player_idx) {
+        // start with the one that take minimum moves possibles
+        int windMoves = game.wind->gpu.size();
+
+    }
+}
+
+void    setupGame(int gameNumber) {
     cin >> game.gpu; cin.ignore();
     
-    if (gameNumber == 0) {
+    if (gameNumber == 0)
         game.hurdle = new hurdleGame(game);
-        game.hurdle->play(game);
-    }
-    else if (gameNumber == 1) {
+    else if (gameNumber == 1)
         game.wind = new windGame(game);
-        game.wind->play(game.movesCnt);
-    }
     else if (gameNumber == 2) {
         int num;
         for(int i = 0; i < 7; i++) cin >> num;
     }
-    else {
+    else
         game.diving = new divingGame(game);
+}
+
+void    checkBestMoves() {
+    // if (!game.hurdleCnt && !game.diveCnt && !game.hurdle->player_pos) {
+    //     // first turn start either hurdle or diving base on minimum moves
+    //     int divingMoves = game.diving->gpu.size();
+    //     int hurdleMoves = game.hurdle->getMinMoves(0); 
+
+    //     if (divingMoves > hurdleMoves) {
+    //         game.playingHurdle = 1;
+    //         game.hurdle->play(game);
+    //     }
+    //     else game.diving->play(game);
+    // }
+    if (game.hurdle->gpu != "GAME_OVER" && game.hurdleMedals[0] == 0)
+        game.hurdle->play(game);
+    else if (game.diving->gpu != "GAME_OVER" && game.divingMedals[0] == 0)
+        game.diving->play(game);
+    else { 
+        // now you guarented a gold in hurdle and gold in diving 
+        // strategie for know if windgpu is less than 10 play for wind
+        // else play either for the hurdle or diving
+
+        // for now play just diving (for debugging first 2 medals)
         game.diving->play(game);
     }
 }
@@ -33,12 +62,15 @@ int main()
     while (1) {
         game.movesCnt.clear();
         for (int i = 0; i < 3; i++) {
-            string score_info;
-            getline(cin, score_info);
+            string scoreInfo;
+            getline(cin, scoreInfo);
+            if (i == game.player_idx)
+                game.setMedals(scoreInfo);
         }
         for (int i = 0; i < nb_games; i++) {
-            playGame(i);
-        }   
+            setupGame(i);
+        }
+        checkBestMoves();
         cerr << "\n---------------\n";
         double maxMoves = -2e9;
         string ans;
