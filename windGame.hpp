@@ -29,10 +29,10 @@ struct windGame {
         return sumLeft;
     }
 
-    void    play(std::map<string, double> &movesCnt) {
+    void    play(gamesInfo &game) {
         if (gpu == "GAME_OVER") return ;
-        int sumLeft = getMovesLeft();
-        if (sumLeft >= 15 || gpu.size() >= 6) return;
+        // int sumLeft = getMovesLeft();
+        // if (sumLeft >= 15 || gpu.size() >= 6) return;
         cerr << "-----Wind---------------\n";
         cerr << gpu << endl;
 
@@ -41,7 +41,6 @@ struct windGame {
         int dy[4] = {0, -1, 1, 0};
         int i = 0;
         cerr << "x:" << player_x << " y: " << player_y << " turnLeft:" << gpu.size()<< endl;
-        map<int, vector<string>> best;
         for(string s : {"RIGHT", "UP", "DOWN", "LEFT"}) {
             int nx = posx[player_idx] + power * dx[i];
             int ny = posy[player_idx] + power * dy[i];
@@ -53,7 +52,7 @@ struct windGame {
             double  distance = sqrt(nx * nx + ny * ny); // we want it to be as little as possible
             double score = 400.0 / (distance * gpu.size() + 1);
             cerr << "   score: "<< s << ' ' << score << ' ' << distance << endl;
-            movesCnt[s] += score;
+            game.movesCnt[s] += score;
         }
         cerr << endl;
 

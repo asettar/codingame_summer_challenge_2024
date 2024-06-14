@@ -38,17 +38,29 @@ void    checkBestMoves() {
     //     }
     //     else game.diving->play(game);
     // }
-    if (game.hurdle->gpu != "GAME_OVER" && game.hurdleMedals[0] == 0)
+    if (game.hurdle->gpu != "GAME_OVER" && game.hurdleMedals[0] == 0 && !game.hurdle->guarentedWin(game))
         game.hurdle->play(game);
-    else if (game.diving->gpu != "GAME_OVER" && game.divingMedals[0] == 0)
+    else if (game.diving->gpu != "GAME_OVER" && game.divingMedals[0] == 0 && !game.diving->guarentedWin())
         game.diving->play(game);
+    else if (game.hurdleMedals[0] == 1 && (game.divingMedals[0] == 1 || game.divingMedals[0] == 0 && game.diving->guarentedWin()))
+        game.hurdle->play(game);
+        // add 1 medal to hurdle 
+    else if ((game.hurdleMedals[0] == 2 || game.hurdle->guarentedWin(game) && game.hurdleMedals[0] == 1) 
+        && game.divingMedals[0] == 1 && !game.diving->guarentedWin()) {
+        // add 1 medal to diiving
+        game.diving->play(game);
+    }
     else { 
         // now you guarented a gold in hurdle and gold in diving 
         // strategie for know if windgpu is less than 10 play for wind
         // else play either for the hurdle or diving
 
         // for now play just diving (for debugging first 2 medals)
-        game.diving->play(game);
+        // if (game.wind->gpu.size() >= 10) {
+        //     game.diving->play(game);
+        //     game.
+        // }  
+        game.wind->play(game);
     }
 }
 
