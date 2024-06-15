@@ -27,23 +27,16 @@ struct divingGame {
             opp1 += combo1;
             opp2 += combo2;
         }
-        cerr << opp1 << ' ' << opp2 << endl;
         return (max(opp1, opp2) < points[player_idx]);
     }
 
     void    play(gamesInfo &game) {
-        if (gpu == "GAME_OVER") return ;
-        if (gpu.size() == 1) game.diveCnt++;
-        map<char, string> mp = {{'L', "LEFT"}, {'R', "RIGHT"}, {'D',  "DOWN"}, {'U', "UP"}};
-        if (guarentedWin()) {
-            game.diveCnt++;
-            return ;
-        }
-        // double score = combo[player_idx] + 4;
+        if (gpu == "GAME_OVER" || guarentedWin()) return ;
         cerr << "------Diving----------\n";
         cerr << gpu << ' ' << gpu.size() << endl;
         // cerr << "Score : " << score << endl;
-        game.movesCnt[mp[gpu[0]]] += 4;
+        map<char, string> mp = {{'L', "LEFT"}, {'R', "RIGHT"}, {'D',  "DOWN"}, {'U', "UP"}};
+        game.movesCnt[mp[gpu[0]]] += 4 + combo[player_idx] / 5;
     }
 };
 

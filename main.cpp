@@ -55,11 +55,7 @@ void    checkBestMoves() {
         // strategie for know if windgpu is less than 10 play for wind
         // else play either for the hurdle or diving
 
-        // for now play just diving (for debugging first 2 medals)
-        // if (game.wind->gpu.size() >= 10) {
-        //     game.diving->play(game);
-        //     game.
-        // }  
+       
         if (game.wind->gpu != "GAME_OVER" && game.wind->gpu.size() <= 9)
             game.wind->play(game);
         game.hurdle->score(game);
@@ -72,7 +68,7 @@ int main()
     cin >> game.player_idx; cin.ignore();
     int nb_games;
     cin >> nb_games; cin.ignore();
-    game.generatePermutations();
+    // game.generatePermutations();
     // game loop
     while (1) {
         game.movesCnt.clear();

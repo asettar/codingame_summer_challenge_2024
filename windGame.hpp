@@ -7,7 +7,6 @@ struct windGame {
     int posx[3], posy[3];
     int player_x, player_y;
     int player_idx;
-
     int dx[4] = {1, 0, 0, -1};
     int dy[4] = {0, -1, 1, 0};
 
@@ -42,7 +41,7 @@ struct windGame {
 
         if (winddp[i][x + 20][y + 20] != -1)
             return winddp[i][x + 20][y + 20];
-        int ans = 1000;
+        int ans = 2e9;
         int k = 0;
         for(char c : "RUDL") {
             int nx = x + (gpu[i] - '0') * dx[k];
@@ -62,21 +61,20 @@ struct windGame {
         cerr << "-----Wind---------------\n";
         cerr << gpu << endl;
 
-        int i =0 ;
-        int dx[4] = {1, 0, 0, -1};
-        int dy[4] = {0, -1, 1, 0};
+        int i = 0 ;
         map<char, string> mp = {{'L', "LEFT"}, {'R', "RIGHT"}, {'D',  "DOWN"}, {'U', "UP"}};
         int winddp[15][41][41];
         memset(winddp, -1, sizeof(winddp));
         for (char c : "RUDL") {
-            int nx = player_x + (gpu[i] - '0') * dx[i];
-            int ny = player_y + (gpu[i] - '0') * dy[i];
+            int nx = player_x + (gpu[0] - '0') * dx[i];
+            int ny = player_y + (gpu[0] - '0') * dy[i];
             nx = min(nx, 20);
             nx = max(nx, -20);
             ny = min(ny, 20);
             ny = max(ny, -20);
             if (minimumDistance(0, player_x, player_y, winddp) == minimumDistance(1, nx, ny, winddp))
             game.movesCnt[mp[c]] += 5;
+            i++;
         }
     }
 };

@@ -9,6 +9,7 @@
 #include <map>
 #include <cmath>
 #include <sstream>
+#include <cstring>
 #include <set>
 
 using namespace std;

@@ -67,7 +67,7 @@ struct hurdleGame {
     }
 
     void    score(gamesInfo &game) {
-        if (gpu == "GAME_OVER" || stun[game.player_idx] > 0) return;
+        if (gpu == "GAME_OVER" || stun[game.player_idx] > 0 || guarentedWin(game)) return;
         int mv[4] = {3, 2, 2, 1};
         int k = 0;
         for(string s : {"RIGHT", "UP", "DOWN", "LEFT"}) {
@@ -93,10 +93,11 @@ struct hurdleGame {
     }
 
     bool guarentedWin(gamesInfo &game) {
-        for(int i = 1; i < gpu.size(); i++) {
-            if (gpu[i] == '#') return 0;
+        int maxNeedForWin = stun[game.player_idx] + gpu.size() - player_pos;
+        for(int i = player_pos + 1; i < gpu.size(); i++) {
+            if (gpu[i] == '#') maxNeedForWin += 3;
         }
-        int maxNeedForWin = stun[game.player_idx] + gpu.size();
+        
         int opps1Need = stun[(game.player_idx + 1) % 3] + getMinMoves(pos[(game.player_idx + 1) % 3], game);
         int opp2Need = stun[(game.player_idx + 2) % 3] + getMinMoves(pos[(game.player_idx + 2) % 3], game);
         return (maxNeedForWin <= opps1Need && maxNeedForWin <= opp2Need);
