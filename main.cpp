@@ -62,7 +62,7 @@ void    checkBestMoves() {
         // }  
         if (game.wind->gpu != "GAME_OVER" && game.wind->gpu.size() <= 9)
             game.wind->play(game);
-        game.hurdle->play(game);
+        game.hurdle->score(game);
         game.diving->play(game);
     }
 }

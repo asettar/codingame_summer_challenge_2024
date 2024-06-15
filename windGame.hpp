@@ -80,4 +80,5 @@ struct windGame {
         }
     }
 };
+
 /*end*/

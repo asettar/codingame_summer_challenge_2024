@@ -67,7 +67,7 @@ struct hurdleGame {
     }
 
     void    score(gamesInfo &game) {
-        if (stun[game.player_idx] > 0) return;
+        if (gpu == "GAME_OVER" || stun[game.player_idx] > 0) return;
         int mv[4] = {3, 2, 2, 1};
         int k = 0;
         for(string s : {"RIGHT", "UP", "DOWN", "LEFT"}) {
