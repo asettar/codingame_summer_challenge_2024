@@ -19,10 +19,7 @@ struct windGame {
             cin >> posy[i]; cin.ignore();
         }
         cin >> unused; cin.ignore();
-        if (gpu == "GAME_OVER") {
-            game.windCnt++;
-            memset(game.winddp, -1, sizeof(game.winddp));
-        }
+        if (gpu == "GAME_OVER") game.windCnt++;
         player_x = posx[game.player_idx];
         player_y = posy[game.player_idx];
         player_idx = game.player_idx;
@@ -46,16 +43,16 @@ struct windGame {
         if (winddp[i][x + 20][y + 20] != -1)
             return winddp[i][x + 20][y + 20];
         int ans = 1000;
-        int i = 0;
+        int k = 0;
         for(char c : "RUDL") {
-            int nx = x + (gpu[i] - '0') * dx[i];
-            int ny = y +  (gpu[i] - '0') * dy[i];
+            int nx = x + (gpu[i] - '0') * dx[k];
+            int ny = y +  (gpu[i] - '0') * dy[k];
             nx = min(nx, 20);
             nx = max(nx, -20);
             ny = min(ny, 20);
             ny = max(ny, -20);
             ans = min(ans, minimumDistance(i + 1, nx, ny, winddp));
-            i++;
+            k++;
         }
         return winddp[i][x + 20][y + 20] = ans;
     }

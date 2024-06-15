@@ -67,7 +67,29 @@ struct hurdleGame {
     }
 
     void    score(gamesInfo &game) {
-        
+        if (stun[game.player_idx] > 0) return;
+        int mv[4] = {3, 2, 2, 1};
+        int k = 0;
+        for(string s : {"RIGHT", "UP", "DOWN", "LEFT"}) {
+            int score = 0;
+            for(int j = player_pos + 1; j <= player_pos + mv[k]; j++) {
+                if (gpu[j] == '#') {
+                    if (s == "UP" && j == player_pos + 1) score += 0;
+                    else {
+                        score -= 3 * player_pos;
+                        break;
+                    }
+                }
+                if (j >= gpu.size() - 1) {
+                    score += 15;
+                    break;
+                }
+                score++;
+            }
+            if (score > 0)
+                game.movesCnt[s] += score;
+            k++;
+        }
     }
 
     bool guarentedWin(gamesInfo &game) {
