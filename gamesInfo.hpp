@@ -9,6 +9,8 @@
 #include <map>
 #include <cmath>
 #include <sstream>
+#include <set>
+
 using namespace std;
 
 struct hurdleGame;
@@ -28,11 +30,14 @@ struct gamesInfo {
     int divingMedals[3];
     int totalScore;
     vector<int> hurdledp;
-
+    vector<vector<string>> permutations;
     hurdleGame *hurdle;
     windGame *wind;
     divingGame *diving;
 
+    gamesInfo() {
+        permutations.resize(10);
+    }
     void    setMedals(const string &scoreInfo) {
         std::vector<int> scores;
         std::stringstream ss(scoreInfo);
@@ -49,6 +54,21 @@ struct gamesInfo {
             rollerMedals[k] = scores[i];
         for(int i = 10, k = 0; i < 13; i++, k++)
             divingMedals[k] = scores[i];
+    }
+
+    void    rec(int i, string &s) {
+        if (i == 10) return ;
+        if (i) permutations[i].push_back(s);
+        for(char c : "RLDU") {
+            s += c;
+            rec(i + 1, s);
+            s.pop_back();
+        }
+    }
+
+    void    generatePermutations() {
+        string s;
+        rec(0, s);
     }
 };
 /*end*/

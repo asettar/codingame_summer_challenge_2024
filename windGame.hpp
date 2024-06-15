@@ -8,6 +8,9 @@ struct windGame {
     int player_x, player_y;
     int player_idx;
 
+    int dx[4] = {1, 0, 0, -1};
+    int dy[4] = {0, -1, 1, 0};
+
     windGame() {}
     windGame(gamesInfo &game) {
         gpu = game.gpu;
@@ -16,7 +19,10 @@ struct windGame {
             cin >> posy[i]; cin.ignore();
         }
         cin >> unused; cin.ignore();
-        if (gpu == "GAME_OVER") game.windCnt++;
+        if (gpu == "GAME_OVER") {
+            game.windCnt++;
+            memset(game.winddp, -1, sizeof(game.winddp));
+        }
         player_x = posx[game.player_idx];
         player_y = posy[game.player_idx];
         player_idx = game.player_idx;
@@ -29,33 +35,52 @@ struct windGame {
         return sumLeft;
     }
 
-    void    play(gamesInfo &game) {
-        if (gpu == "GAME_OVER") return ;
-        // int sumLeft = getMovesLeft();
-        // if (sumLeft >= 15 || gpu.size() >= 6) return;
-        cerr << "-----Wind---------------\n";
-        cerr << gpu << endl;
+    int getDistance(int x, int y) {
+        return sqrt(x * x + y * y);
+    }
+    int minimumDistance(int i, int x, int y, int winddp[15][41][41]) {
+        if (i == gpu.size()) {
+            return getDistance(x, y);
+        }
 
-        int power = gpu[0] - '0';
-        int dx[4] = {1, 0, 0, -1};
-        int dy[4] = {0, -1, 1, 0};
+        if (winddp[i][x + 20][y + 20] != -1)
+            return winddp[i][x + 20][y + 20];
+        int ans = 1000;
         int i = 0;
-        cerr << "x:" << player_x << " y: " << player_y << " turnLeft:" << gpu.size()<< endl;
-        for(string s : {"RIGHT", "UP", "DOWN", "LEFT"}) {
-            int nx = posx[player_idx] + power * dx[i];
-            int ny = posy[player_idx] + power * dy[i];
+        for(char c : "RUDL") {
+            int nx = x + (gpu[i] - '0') * dx[i];
+            int ny = y +  (gpu[i] - '0') * dy[i];
             nx = min(nx, 20);
             nx = max(nx, -20);
             ny = min(ny, 20);
             ny = max(ny, -20);
+            ans = min(ans, minimumDistance(i + 1, nx, ny, winddp));
             i++;
-            double  distance = sqrt(nx * nx + ny * ny); // we want it to be as little as possible
-            double score = 400.0 / (distance * gpu.size() + 1);
-            cerr << "   score: "<< s << ' ' << score << ' ' << distance << endl;
-            game.movesCnt[s] += score;
         }
-        cerr << endl;
+        return winddp[i][x + 20][y + 20] = ans;
+    }
 
+    void    play(gamesInfo &game) {
+        if (gpu == "GAME_OVER") return ;
+        cerr << "-----Wind---------------\n";
+        cerr << gpu << endl;
+
+        int i =0 ;
+        int dx[4] = {1, 0, 0, -1};
+        int dy[4] = {0, -1, 1, 0};
+        map<char, string> mp = {{'L', "LEFT"}, {'R', "RIGHT"}, {'D',  "DOWN"}, {'U', "UP"}};
+        int winddp[15][41][41];
+        memset(winddp, -1, sizeof(winddp));
+        for (char c : "RUDL") {
+            int nx = player_x + (gpu[i] - '0') * dx[i];
+            int ny = player_y + (gpu[i] - '0') * dy[i];
+            nx = min(nx, 20);
+            nx = max(nx, -20);
+            ny = min(ny, 20);
+            ny = max(ny, -20);
+            if (minimumDistance(0, player_x, player_y, winddp) == minimumDistance(1, nx, ny, winddp))
+            game.movesCnt[mp[c]] += 5;
+        }
     }
 };
 /*end*/

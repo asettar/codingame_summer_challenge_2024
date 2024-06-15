@@ -66,6 +66,10 @@ struct hurdleGame {
         }
     }
 
+    void    score(gamesInfo &game) {
+        
+    }
+
     bool guarentedWin(gamesInfo &game) {
         for(int i = 1; i < gpu.size(); i++) {
             if (gpu[i] == '#') return 0;

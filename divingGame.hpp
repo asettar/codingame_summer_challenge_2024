@@ -39,11 +39,11 @@ struct divingGame {
             game.diveCnt++;
             return ;
         }
-        double score = combo[player_idx] + 4;
+        // double score = combo[player_idx] + 4;
         cerr << "------Diving----------\n";
         cerr << gpu << ' ' << gpu.size() << endl;
-        cerr << "Score : " << score << endl;
-        game.movesCnt[mp[gpu[0]]] += score;
+        // cerr << "Score : " << score << endl;
+        game.movesCnt[mp[gpu[0]]] += 4;
     }
 };
 

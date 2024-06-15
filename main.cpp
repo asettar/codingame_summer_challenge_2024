@@ -42,16 +42,16 @@ void    checkBestMoves() {
         game.hurdle->play(game);
     else if (game.diving->gpu != "GAME_OVER" && game.divingMedals[0] == 0 && !game.diving->guarentedWin())
         game.diving->play(game);
-    else if (game.hurdleMedals[0] == 1 && (game.divingMedals[0] == 1 || game.divingMedals[0] == 0 && game.diving->guarentedWin()))
+    else if (game.hurdleMedals[0] == 1 && (game.divingMedals[0] == 1 || (game.divingMedals[0] == 0 && game.diving->guarentedWin())))
         game.hurdle->play(game);
         // add 1 medal to hurdle 
-    else if ((game.hurdleMedals[0] == 2 || game.hurdle->guarentedWin(game) && game.hurdleMedals[0] == 1) 
+    else if ((game.hurdleMedals[0] == 2 || (game.hurdle->guarentedWin(game) && game.hurdleMedals[0] == 1)) 
         && game.divingMedals[0] == 1 && !game.diving->guarentedWin()) {
         // add 1 medal to diiving
         game.diving->play(game);
     }
     else { 
-        // now you guarented a gold in hurdle and gold in diving 
+        // now you guarented 2 gold in hurdle and 2 gold in diving 
         // strategie for know if windgpu is less than 10 play for wind
         // else play either for the hurdle or diving
 
@@ -60,7 +60,10 @@ void    checkBestMoves() {
         //     game.diving->play(game);
         //     game.
         // }  
-        game.wind->play(game);
+        if (game.wind->gpu != "GAME_OVER" && game.wind->gpu.size() <= 9)
+            game.wind->play(game);
+        game.hurdle->play(game);
+        game.diving->play(game);
     }
 }
 
@@ -69,7 +72,7 @@ int main()
     cin >> game.player_idx; cin.ignore();
     int nb_games;
     cin >> nb_games; cin.ignore();
-
+    game.generatePermutations();
     // game loop
     while (1) {
         game.movesCnt.clear();
@@ -93,5 +96,3 @@ int main()
         cout << ans << endl;
     }
 }
-
-/*end*/
