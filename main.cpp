@@ -68,7 +68,7 @@ int main()
     cin >> game.player_idx; cin.ignore();
     int nb_games;
     cin >> nb_games; cin.ignore();
-    // game.generatePermutations();
+    game.generatePermutations();
     // game loop
     while (1) {
         game.movesCnt.clear();
@@ -92,3 +92,9 @@ int main()
         cout << ans << endl;
     }
 }
+
+
+
+// alpha : worst possible score for white
+// beta  : best possible score for black
+
