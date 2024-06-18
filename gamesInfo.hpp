@@ -9,7 +9,9 @@
 #include <map>
 #include <cmath>
 #include <sstream>
+#include <cstring>
 #include <set>
+#include <random>
 
 using namespace std;
 
@@ -30,13 +32,13 @@ struct gamesInfo {
     int divingMedals[3];
     int totalScore;
     vector<int> hurdledp;
-    vector<vector<string>> permutations;
+    vector<string> permutations;
     hurdleGame *hurdle;
     windGame *wind;
     divingGame *diving;
 
     gamesInfo() {
-        permutations.resize(10);
+
     }
     void    setMedals(const string &scoreInfo) {
         std::vector<int> scores;
@@ -56,19 +58,26 @@ struct gamesInfo {
             divingMedals[k] = scores[i];
     }
 
-    void    rec(int i, string &s) {
-        if (i == 10) return ;
-        if (i) permutations[i].push_back(s);
-        for(char c : "RLDU") {
+    void rec(int i, string &s) {
+        if (i == 3) {
+            permutations.push_back(s);
+            return;
+        }
+        for (char c : string("RLDU")) {
             s += c;
             rec(i + 1, s);
             s.pop_back();
         }
     }
 
-    void    generatePermutations() {
+    void generatePermutations() {
         string s;
+        s.reserve(3);
         rec(0, s);
+        random_device rd;
+        mt19937 g(rd());
+        shuffle(permutations.begin(), permutations.end(), g);
     }
+
 };
 /*end*/

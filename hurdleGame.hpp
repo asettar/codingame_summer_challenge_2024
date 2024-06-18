@@ -1,14 +1,14 @@
 #pragma once
 #include "gamesInfo.hpp"
 /*start*/
+gamesInfo game;
 
 using namespace std;
-
 struct hurdleGame {
     string gpu;
     int pos[3], stun[3];
+    double  medals[3];
     int unused, player_pos; 
-
     hurdleGame() {}
 
     hurdleGame(gamesInfo &game) {
@@ -67,7 +67,7 @@ struct hurdleGame {
     }
 
     void    score(gamesInfo &game) {
-        if (gpu == "GAME_OVER" || stun[game.player_idx] > 0) return;
+        if (gpu == "GAME_OVER" || stun[game.player_idx] > 0 || guarentedWin(game)) return;
         int mv[4] = {3, 2, 2, 1};
         int k = 0;
         for(string s : {"RIGHT", "UP", "DOWN", "LEFT"}) {
@@ -93,15 +93,67 @@ struct hurdleGame {
     }
 
     bool guarentedWin(gamesInfo &game) {
-        for(int i = 1; i < gpu.size(); i++) {
-            if (gpu[i] == '#') return 0;
+        int maxNeedForWin = stun[game.player_idx] + gpu.size() - player_pos;
+        for(int i = player_pos + 1; i < gpu.size(); i++) {
+            if (gpu[i] == '#') maxNeedForWin += 3;
         }
-        int maxNeedForWin = stun[game.player_idx] + gpu.size();
+        
         int opps1Need = stun[(game.player_idx + 1) % 3] + getMinMoves(pos[(game.player_idx + 1) % 3], game);
         int opp2Need = stun[(game.player_idx + 2) % 3] + getMinMoves(pos[(game.player_idx + 2) % 3], game);
         return (maxNeedForWin <= opps1Need && maxNeedForWin <= opp2Need);
     }
 
+    void    simulate(int idx, char move) {
+        if (stun[idx]) {
+            stun[idx]--;
+            return ;
+        }
+        int mv[4] = {3, 2, 2, 1};
+        string moves = "RUDL";
+        int k = moves.find(move);
+        int start = pos[idx] + 1;
+        for(int i = start; i <= pos[idx] + mv[k]; i++) {
+            if (i >= 29) break;
+            if (gpu[i] == '#') {
+                if (move != 'U' || i != start) {
+                    stun[idx] += 3;
+                    break;
+                }
+            }
+            pos[idx]++;
+        }
+    }
+
+    bool isTerminal() {
+        for(int i = 0; i < 3; i++) {
+            if (pos[i] >= 29) return true;
+        }
+        return false;
+    }
+    void    distributeMedals() {
+        vector<pair<int, int>> positions;
+        for(int i = 0; i < 3; i++) {
+            positions.push_back({pos[(game.player_idx + i) % 3], (game.player_idx + i) % 3});
+        }
+        sort(positions.rbegin(), positions.rend());
+        medals[positions[0].second] = 1;
+        if (positions[1].first >= 29) medals[positions[1].second] = 1;
+        else medals[positions[1].second] = 0.5;
+        if (positions[2].first >= 29) medals[positions[2].second] = 1;
+        else if (positions[2].first == positions[1].first)
+            medals[positions[2].second] = 0.5;
+        else medals[positions[2].second] = 0;
+    }
+
+    double  getMyMedals() {
+        return medals[game.player_idx];
+    }
+    double getOpp1Medals() {
+        return medals[(game.player_idx + 1) % 3];
+    }
+    double getOpp2Medals() {
+        return medals[(game.player_idx + 2) % 3];
+    }
 };
 
 /*end*/

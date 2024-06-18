@@ -21,9 +21,10 @@ vector<string> files =
     /* header-files*/
     "./gamesInfo.hpp",
     "./header.hpp",
-    "./divingGame.hpp",
     "./hurdleGame.hpp",
+    "./divingGame.hpp",
     "./windGame.hpp",
+    "./miniGame.hpp",
     /* mini-games - files */
 
     /*main-file*/
