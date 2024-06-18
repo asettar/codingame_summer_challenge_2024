@@ -141,8 +141,8 @@ struct hurdleGame {
         else medals[positions[1].second] = 0.5;
         if (positions[2].first >= 29) medals[positions[2].second] = 1;
         else if (positions[2].first == positions[1].first)
-            medals[positions[1].second] = 0.5;
-        else medals[positions[1].second] = 0;
+            medals[positions[2].second] = 0.5;
+        else medals[positions[2].second] = 0;
     }
 
     double  getMyMedals() {

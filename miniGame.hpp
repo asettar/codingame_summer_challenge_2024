@@ -27,6 +27,9 @@ public:
         checkGameEnds();
     }
     bool    isTerminal() {
+        if (hurdle->isTerminal()) hurdleEnd = 1;
+        if (wind->isTerminal()) windEnd = 1;
+        if (diving->isTerminal()) divingEnd = 1;
         return (hurdleEnd && windEnd && divingEnd);
     }
     double  getMyScore() {
@@ -64,7 +67,6 @@ private :
             diving->distributeMedals();
         }
     }
-
 };
 
 /*end*/

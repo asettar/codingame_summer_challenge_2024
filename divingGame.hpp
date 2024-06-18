@@ -62,8 +62,8 @@ struct divingGame {
         else medals[scores[1].second] = 0.5;
         if (scores[2].first == scores[0].first) medals[scores[2].second] = 1;
         else if (scores[2].first == scores[1].first)
-            medals[scores[1].second] = 0.5;
-        else medals[scores[1].second] = 0;
+            medals[scores[2].second] = 0.5;
+        else medals[scores[2].second] = 0;
     }
 
     double  getMyMedals() {

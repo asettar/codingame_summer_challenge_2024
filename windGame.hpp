@@ -111,8 +111,8 @@ struct windGame {
         else medals[distances[1].second] = 0.5;
         if (distances[2].first == distances[0].first) medals[distances[2].second] = 1;
         else if (distances[2].first == distances[1].first)
-            medals[distances[1].second] = 0.5;
-        else medals[distances[1].second] = 0;
+            medals[distances[2].second] = 0.5;
+        else medals[distances[2].second] = 0;
     }
 
     double  getMyMedals() {
