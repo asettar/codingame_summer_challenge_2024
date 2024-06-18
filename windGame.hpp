@@ -9,6 +9,7 @@ struct windGame {
     int player_idx;
     int dx[4] = {1, 0, 0, -1};
     int dy[4] = {0, -1, 1, 0};
+    int medals[3];
 
     windGame() {}
     windGame(gamesInfo &game) {
@@ -31,7 +32,7 @@ struct windGame {
         return sumLeft;
     }
 
-    int getDistance(int x, int y) {
+    double getDistance(int x, int y) {
         return sqrt(x * x + y * y);
     }
     int minimumDistance(int i, int x, int y, int winddp[15][41][41]) {
@@ -76,6 +77,52 @@ struct windGame {
             game.movesCnt[mp[c]] += 5;
             i++;
         }
+    }
+
+    void    simulate(int idx, char move) {
+
+        string moves = "RUDL";
+        int k = moves.find(move);
+        int nx = posx[idx] + (gpu[0] - '0') * dx[k];
+        int ny = posy[idx] +  (gpu[0] - '0') * dy[k];
+        nx = min(nx, 20);
+        nx = max(nx, -20);
+        ny = min(ny, 20);
+        ny = max(ny, -20);
+
+        posx[idx] = nx;
+        posy[idx] = ny;
+        gpu.erase(gpu.begin());
+    }
+
+    bool    isTerminal() {
+        return gpu.empty();
+    }
+
+    void    distribueMedals() {
+        vector<pair<double, int>> distances;
+        for(int i = 0; i < 3; i++) {
+            double curDist = getDistance(posx[(game.player_idx + i) % 3], posy[(game.player_idx + i) % 3]);
+            distances.push_back({curDist, (game.player_idx + i) % 3});
+        }
+        sort(distances.begin(), distances.end());
+        medals[distances[0].second] = 1;
+        if (distances[1].first == distances[0].first) medals[distances[1].second] = 1;
+        else medals[distances[1].second] = 0.5;
+        if (distances[2].first == distances[0].first) medals[distances[2].second] = 1;
+        else if (distances[2].first == distances[1].first)
+            medals[distances[1].second] = 0.5;
+        else medals[distances[1].second] = 0;
+    }
+
+    double  getMyMedals() {
+        return medals[game.player_idx];
+    }
+    double getOpp1Medals() {
+        return medals[(game.player_idx + 1) % 3];
+    }
+    double getOpp2Medals() {
+        return medals[(game.player_idx + 2) % 3];
     }
 };
 

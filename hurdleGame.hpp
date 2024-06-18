@@ -135,12 +135,13 @@ struct hurdleGame {
             positions.push_back({pos[(game.player_idx + i) % 3], (game.player_idx + i) % 3});
         }
         sort(positions.rbegin(), positions.rend());
-        medals[positions[0].second] += 1;
-        if (positions[1].first >= 29) medals[positions[1].second] += 1;
-        else medals[positions[1].second] += 0.5;
-        if (positions[2].first >= 29) medals[positions[2].second] += 1;
+        medals[positions[0].second] = 1;
+        if (positions[1].first >= 29) medals[positions[1].second] = 1;
+        else medals[positions[1].second] = 0.5;
+        if (positions[2].first >= 29) medals[positions[2].second] = 1;
         else if (positions[2].first == positions[1].first)
-            medals[positions[1].second] += 0.5;
+            medals[positions[1].second] = 0.5;
+        else medals[positions[1].second] = 0;
     }
 
     double  getMyMedals() {
