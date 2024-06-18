@@ -1,7 +1,7 @@
 #pragma once
 #include "gamesInfo.hpp"
-gamesInfo game;
 /*start*/
+gamesInfo game;
 
 using namespace std;
 struct hurdleGame {
