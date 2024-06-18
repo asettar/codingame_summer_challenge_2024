@@ -1,9 +1,9 @@
 #pragma once
 #include "gamesInfo.hpp"
+gamesInfo game;
 /*start*/
 
 using namespace std;
-
 struct hurdleGame {
     string gpu;
     int pos[3], stun[3];
@@ -115,7 +115,7 @@ struct hurdleGame {
         for(int i = start; i <= pos[idx] + mv[k]; i++) {
             if (i >= 29) break;
             if (gpu[i] == '#') {
-                if (move != 'UP' || i != start) {
+                if (move != 'U' || i != start) {
                     stun[idx] += 3;
                     break;
                 }
@@ -124,12 +124,13 @@ struct hurdleGame {
         }
     }
 
-    bool isTermial() {
+    bool isTerminal() {
         for(int i = 0; i < 3; i++) {
             if (pos[i] >= 29) return true;
         }
+        return false;
     }
-    void    distribueMedals() {
+    void    distributeMedals() {
         vector<pair<int, int>> positions;
         for(int i = 0; i < 3; i++) {
             positions.push_back({pos[(game.player_idx + i) % 3], (game.player_idx + i) % 3});

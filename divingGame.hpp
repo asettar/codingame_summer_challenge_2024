@@ -4,7 +4,7 @@
 
 struct divingGame {
     int points[3], combo[3];
-    int medals[3];
+    double medals[3];
     int unused, player_idx;
     string gpu;
     divingGame() {}
@@ -51,7 +51,7 @@ struct divingGame {
         return gpu.empty();
     }
 
-    void    distribueMedals() {
+    void    distributeMedals() {
         vector<pair<double, int>> scores;
         for(int i = 0; i < 3; i++) {
             scores.push_back({points[(game.player_idx + i) % 3], (game.player_idx + i) % 3});

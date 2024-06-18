@@ -9,7 +9,7 @@ struct windGame {
     int player_idx;
     int dx[4] = {1, 0, 0, -1};
     int dy[4] = {0, -1, 1, 0};
-    int medals[3];
+    double medals[3];
 
     windGame() {}
     windGame(gamesInfo &game) {
@@ -99,7 +99,7 @@ struct windGame {
         return gpu.empty();
     }
 
-    void    distribueMedals() {
+    void    distributeMedals() {
         vector<pair<double, int>> distances;
         for(int i = 0; i < 3; i++) {
             double curDist = getDistance(posx[(game.player_idx + i) % 3], posy[(game.player_idx + i) % 3]);

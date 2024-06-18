@@ -1,6 +1,6 @@
 #include "header.hpp"
 /*start*/
-gamesInfo game;
+// gamesInfo game;
 
 void    checkcheckHurdleDiving() {
     // firstTime
