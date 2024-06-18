@@ -24,6 +24,7 @@ vector<string> files =
     "./divingGame.hpp",
     "./hurdleGame.hpp",
     "./windGame.hpp",
+    "./miniGame.hpp",
     /* mini-games - files */
 
     /*main-file*/

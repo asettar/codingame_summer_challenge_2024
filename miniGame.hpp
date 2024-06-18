@@ -1,7 +1,7 @@
 #pragma once 
 #include "gamesInfo.hpp"
 
-
+/*start*/
 class miniGame {
     hurdleGame *hurdle;
     windGame *wind;
@@ -66,3 +66,5 @@ private :
     }
 
 };
+
+/*end*/

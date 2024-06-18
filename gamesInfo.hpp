@@ -59,7 +59,7 @@ struct gamesInfo {
     }
 
     void rec(int i, string &s) {
-        if (i == 4) {
+        if (i == 3) {
             permutations.push_back(s);
             return;
         }
@@ -72,7 +72,7 @@ struct gamesInfo {
 
     void generatePermutations() {
         string s;
-        s.reserve(4);
+        s.reserve(3);
         rec(0, s);
         random_device rd;
         mt19937 g(rd());
