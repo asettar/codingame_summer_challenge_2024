@@ -200,7 +200,7 @@ struct hurdleGame {
         }
     }
     void    simulate(int idx, char move) {
-        // cerr << "Hurdle :" << idx << ' ' << move << ' ' << stun[idx] << ' ' << pos[idx] << ' ' << gpu << endl;
+        // cerr << "Hurdle :" << idx << ' ' << stun[idx] << ' ' << pos[idx] << ' ' << gpu << endl;
         if (stun[idx]) {
             stun[idx]--;
             return ;
@@ -210,15 +210,17 @@ struct hurdleGame {
         int k = moves.find(move);
         int start = pos[idx];
         for(int i = start + 1; i <= start + mv[k]; i++) {
-            pos[idx]++;
-            if (i >= 29)
+            if (i >= 29) {
+                pos[idx] = 29;
                 break;
+            }
             if (gpu[i] == '#') {
                 if (move != 'U' || i != start + 1) {
-                    stun[idx] = 2;
+                    stun[idx] += 3;
                     break;
                 }
             }
+            pos[idx]++;
         }
     }
 
@@ -231,7 +233,7 @@ struct hurdleGame {
     void    distributeMedals() {
         vector<pair<int, int>> positions;
         for(int i = 0; i < 3; i++) {
-            positions.push_back({pos[(game.player_idx + i) % 3], (game.player_idx + i) % 3});
+            positions.push_back({pos[i], i});
         }
         sort(positions.rbegin(), positions.rend());
         medals[positions[0].second] = 1;
@@ -317,7 +319,7 @@ struct divingGame {
     void    distributeMedals() {
         vector<pair<double, int>> scores;
         for(int i = 0; i < 3; i++) {
-            scores.push_back({points[(game.player_idx + i) % 3], (game.player_idx + i) % 3});
+            scores.push_back({points[i], i});
         }
         sort(scores.rbegin(), scores.rend());
         medals[scores[0].second] = 1;
@@ -427,8 +429,6 @@ struct windGame {
         // cerr << "Wind: " << idx << ' ' << gpu << endl;
         string moves = "RUDL";
         int k = moves.find(move);
-		int dx[4] = {1, 0, 0, -1};
-    	int dy[4] = {0, -1, 1, 0};
         int nx = posx[idx] + (gpu[0] - '0') * dx[k];
         int ny = posy[idx] +  (gpu[0] - '0') * dy[k];
         nx = min(nx, 20);
@@ -447,8 +447,8 @@ struct windGame {
     void    distributeMedals() {
         vector<pair<double, int>> distances;
         for(int i = 0; i < 3; i++) {
-            double curDist = getDistance(posx[(game.player_idx + i) % 3], posy[(game.player_idx + i) % 3]);
-            distances.push_back({curDist, (game.player_idx + i) % 3});
+            double curDist = getDistance(posx[i], posy[i]);
+            distances.push_back({curDist, i});
         }
         sort(distances.begin(), distances.end());
         medals[distances[0].second] = 1;
@@ -516,7 +516,7 @@ public:
         checkGameEnds();
     }
     bool    isTerminal() {
-        return ((hurdleEnd && windEnd && divingEnd));
+        return (turnsCnt >= 20 || (hurdleEnd && windEnd && divingEnd));
     }
     double  getMyScore() {
         double score = hurdle->getMyMedals() + wind->getMyMedals() + diving->getMyMedals();
@@ -525,7 +525,7 @@ public:
 
 private :
     void    updateHurdle(string &move) {
-        // cerr << "Hurdle:" << move << ' ' << turnsCnt << endl;
+        // cerr << "Hurdle:" << move << endl;
         hurdle->simulate(game.player_idx, move[0]);
         hurdle->simulate((game.player_idx + 1) % 3, move[1]);
         hurdle->simulate((game.player_idx + 2) % 3, move[2]);
@@ -544,7 +544,7 @@ private :
         diving->nextTurn();
     }
     void    checkGameEnds() {
-        if (!hurdleEnd && hurdle->isTerminal()) {
+        if (!hurdleEnd && (hurdle->isTerminal() || turnsCnt >= 20)) {
             hurdleEnd = 1;
             hurdle->distributeMedals();
         }
@@ -630,7 +630,7 @@ struct Node {
     miniGame state;
     Node* parent;
     std::vector<Node*> childs;
-    double visitCount;
+    int visitCount;
     double winScore;
     string move;
     int moveIndex;
@@ -652,7 +652,7 @@ struct Node {
             if (!groups.count(child->move[0]))
                 groups[child->move[0]] = {uctValue, child};
             else {
-                if (uctValue < groups[child->move[0]].first)
+                if (uctValue > groups[child->move[0]].first)
                     groups[child->move[0]] = {uctValue, child};
             }
         }
@@ -709,7 +709,13 @@ public:
         Node* root = new Node(gm);
         for (int i = 0; i < iterations; i++) {
             // cerr << "searching, iteration num :" << i << endl;
+            auto now = std::chrono::high_resolution_clock::now();
+            auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(now - start).count();
 
+            if ((elapsed > 50 && game.turn) || (elapsed > 995 && !game.turn)) {
+                std::cerr << "Breaking after " << elapsed << " milliseconds." << std::endl;
+                break;
+            }
             Node* it = root;
             while(it->isFullyExpanded()) {
                 it = it->select();
@@ -717,12 +723,6 @@ public:
             if (!it->state.isTerminal()) {
                 // cerr << "hh\n";
                 it = it->expand();
-            }
-            auto now = std::chrono::high_resolution_clock::now();
-            auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(now - start).count();
-            if ((elapsed >= 48 && game.turn) || (elapsed > 995 && !game.turn)) {
-                // std::cerr << "Breaking after " << elapsed << " milliseconds." << std::endl;
-                break;
             }
             // cerr << "simulating " << it->state.isTerminal() << endl;
             double result = it->simulateMove();
@@ -746,7 +746,7 @@ public:
             sum += child->visitCount;
         }
 
-        for(auto &[l, r] : groups) {
+        for(auto [l, r] : groups) {
             double val = r / sum;
             if (bestVal < val) {
                 bestVal = val;
@@ -793,7 +793,7 @@ int main()
         miniGame mg(game.hurdle, game.wind, game.diving);
         if (turn == 0)
             cout << mct.findNextMove(mg, 10000) << endl;
-        else cout << mct.findNextMove(mg, 800) << endl;
+        else cout << mct.findNextMove(mg, 1000) << endl;
         game.turn++;
         // return 0;
     }
