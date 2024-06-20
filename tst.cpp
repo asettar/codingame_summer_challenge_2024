@@ -1,6 +1,7 @@
 // file-Name: ./gamesInfo.hpp
 // ########################
 // ########################
+
 #include <map>
 #include <chrono>
 #include <thread>
@@ -603,7 +604,7 @@ class miniGame {
     double  maximumDivingReward;
     int turnsCnt;
 public:
-    miniGame(hurdleGame *hurdle, windGame *wind, divingGame *diving) {
+    miniGame(hurdleGame *hurdle, windGame *wind, divingGame *diving, int turnsCnt) {
         this->hurdle = new hurdleGame(*hurdle);
         this->wind = new windGame(*wind);
         this->diving = new divingGame(*diving);
@@ -613,7 +614,7 @@ public:
         this->minimumHurdleMoves = hurdle->getMinMoves(hurdle->pos[game.player_idx], game) + hurdle->stun[game.player_idx];
         this->maximumHurdleMoves = min(25, hurdle->getMaxMoves(game.player_idx));
         this->maximumDivingReward = diving->getMaximumReward();
-        this->turnsCnt = 0;
+        this->turnsCnt = turnsCnt;
     }
 
      miniGame(const miniGame& other) {
@@ -627,6 +628,7 @@ public:
         minimumHurdleMoves = other.minimumHurdleMoves;
         maximumHurdleMoves = other.maximumHurdleMoves;
         maximumDivingReward = other.maximumDivingReward;
+        turnsCnt = other.turnsCnt;
 
     }
     void    dbg() {
@@ -917,13 +919,16 @@ int main()
         MCTS mct;
         // game.hurdle->gpu = "GAME_OVER";
         // game.diving->gpu = "GAME_OVER";
-        miniGame mg(game.hurdle, game.wind, game.diving);
+        for(auto &[l, r] : game.gamesOrder) r = 0;
         checkWins(game.hurdle, game.wind, game.diving);
+        prioritize(game.hurdle, game.wind, game.diving);
+        int turnsCnt = 14;
+        if (game.wind->gpu != "GAME_OVER") turnsCnt = min(turnsCnt, (int)game.wind->gpu.size());
+        if (game.diving->gpu != "GAME_OVER") turnsCnt = min(turnsCnt, (int)game.diving->gpu.size());
+        miniGame mg(game.hurdle, game.wind, game.diving, turnsCnt);
         // cerr << game.diving->gpu << ' ' << endl;
         // cerr << game.hurdle->gpu << ' ' << endl;
         // cerr << game.diving->gpu << ' ' << endl;
-        for(auto &[l, r] : game.gamesOrder) r = 0;
-        prioritize(game.hurdle, game.wind, game.diving);
         if (game.turn == 0)
             cout << mct.findNextMove(mg, 10000) << endl;
         else cout << mct.findNextMove(mg, 6200) << endl;
