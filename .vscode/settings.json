@@ -1,0 +1,9 @@
+{
+    "files.associations": {
+        "map": "cpp",
+        "iosfwd": "cpp",
+        "limits": "cpp",
+        "utility": "cpp",
+        "vector": "cpp"
+    }
+}
