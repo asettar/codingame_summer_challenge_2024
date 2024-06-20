@@ -561,9 +561,9 @@ struct windGame {
     }
 
     int getCurPlace() {
-        if (gpu.size() >= 10) return 4;
-        else if (gpu.size() >= 7) return 2;
-        else return 1;
+        if (gpu.size() > 7) return 2;
+        else if (gpu.size() > 3)return 1;
+        else return 0;
     }
     void    distributeMedals() {
         vector<pair<double, int>> distances;
@@ -828,7 +828,7 @@ void    checkWins(hurdleGame *hurdle, windGame *wind, divingGame *diving){
 void    prioritize(hurdleGame *hurdle, windGame *wind, divingGame *diving) {
         int i = 0;
         vector<vector<int>> order;
-        if (wind->gpu != "GAME_OVER") {
+        if (wind->gpu != "GAME_OVER" && wind->gpu.size() <= 8) {
             int pos = wind->getCurPlace();
             int score = game.windMedals[0] * 3 + game.windMedals[1];
             // if (game.turn <= 60)
@@ -860,34 +860,37 @@ void    prioritize(hurdleGame *hurdle, windGame *wind, divingGame *diving) {
                 game.gamesOrder[order[1][2]] = 0.5;
             }
             else {
-                game.gamesOrder[order[0][2]] = 0.6;
-                game.gamesOrder[order[1][2]] = 0.4;
+                game.gamesOrder[order[0][2]] = 0.65;
+                game.gamesOrder[order[1][2]] = 0.35;
             }
                 
         }
         else if (order.size() == 3){
             if (comp[0] == comp[1] && comp[1] == comp[2]) {
-                game.gamesOrder[order[0][2]] = 0.33;
-                game.gamesOrder[order[1][2]] = 0.33;
-                game.gamesOrder[order[2][2]] = 0.33;
+                game.gamesOrder[order[0][2]] = 0.333333;
+                game.gamesOrder[order[1][2]] = 0.333333;
+                game.gamesOrder[order[2][2]] = 0.333333;
             }
             else if (comp[0] == comp[1]) {
-                game.gamesOrder[order[0][2]] = 0.4;
-                game.gamesOrder[order[1][2]] = 0.4;
-                game.gamesOrder[order[2][2]] = 0.2;
+                game.gamesOrder[order[0][2]] = 0.425;
+                game.gamesOrder[order[1][2]] = 0.425;
+                game.gamesOrder[order[2][2]] = 0.15;
             }
             else {
-                game.gamesOrder[order[0][2]] = 0.45;
-                game.gamesOrder[order[1][2]] = 0.35;
-                game.gamesOrder[order[2][2]] = 0.20;
+                game.gamesOrder[order[0][2]] = 0.6;
+                game.gamesOrder[order[1][2]] = 0.25;
+                game.gamesOrder[order[2][2]] = 0.15;
             }
         }
         // cerr << "Order\n";
         // for(auto &i : order) {
-        //     for(int &j : i) cerr << j << ' ';
+        //     for(int &j : i) {
+        //         if (j == i.back()) cerr << (char)j << ' ';
+        //         else cerr << j << ' ';
+        //     }
         //     cerr << endl;
         // }
-        // for(auto&[l, r] : gamesOrder) cerr << l << ' ' <<r << endl;
+        // for(auto&[l, r] : game.gamesOrder) cerr << l << ' ' <<r << endl;
 
     }
 
@@ -914,16 +917,16 @@ int main()
         MCTS mct;
         // game.hurdle->gpu = "GAME_OVER";
         // game.diving->gpu = "GAME_OVER";
-        // game.wind->gpu = "GAME_OVER";
         miniGame mg(game.hurdle, game.wind, game.diving);
         checkWins(game.hurdle, game.wind, game.diving);
         // cerr << game.diving->gpu << ' ' << endl;
         // cerr << game.hurdle->gpu << ' ' << endl;
         // cerr << game.diving->gpu << ' ' << endl;
+        for(auto &[l, r] : game.gamesOrder) r = 0;
         prioritize(game.hurdle, game.wind, game.diving);
         if (game.turn == 0)
             cout << mct.findNextMove(mg, 10000) << endl;
-        else cout << mct.findNextMove(mg, 6000) << endl;
+        else cout << mct.findNextMove(mg, 6200) << endl;
 
         // double maxMoves = -2e9;
         // string ans;
