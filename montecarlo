@@ -1,4 +1,0 @@
-
-
-// selection : traverse from root1, select nodes that have higher pcb, when reach aleaf node go to step2
-// expansion : if the leaf node have been visited I expand it by adding to it new nodes with actions
