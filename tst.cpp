@@ -1,7 +1,6 @@
 // file-Name: ./gamesInfo.hpp
 // ########################
 // ########################
-
 #include <map>
 #include <chrono>
 #include <thread>
@@ -562,8 +561,9 @@ struct windGame {
     }
 
     int getCurPlace() {
-        if (gpu.size() > 7) return 2;
-        else if (gpu.size() > 3)return 1;
+        if (gpu.size() > 10) return 3;
+        else if (gpu.size() > 7) return 2;
+        if (game.windMedals[0] * 3 + game.windMedals[1] >= 11) return 1;
         else return 0;
     }
     void    distributeMedals() {
@@ -604,7 +604,7 @@ class miniGame {
     double  maximumDivingReward;
     int turnsCnt;
 public:
-    miniGame(hurdleGame *hurdle, windGame *wind, divingGame *diving, int turnsCnt) {
+    miniGame(hurdleGame *hurdle, windGame *wind, divingGame *diving) {
         this->hurdle = new hurdleGame(*hurdle);
         this->wind = new windGame(*wind);
         this->diving = new divingGame(*diving);
@@ -614,7 +614,7 @@ public:
         this->minimumHurdleMoves = hurdle->getMinMoves(hurdle->pos[game.player_idx], game) + hurdle->stun[game.player_idx];
         this->maximumHurdleMoves = min(25, hurdle->getMaxMoves(game.player_idx));
         this->maximumDivingReward = diving->getMaximumReward();
-        this->turnsCnt = turnsCnt;
+        this->turnsCnt = 0;
     }
 
      miniGame(const miniGame& other) {
@@ -628,7 +628,6 @@ public:
         minimumHurdleMoves = other.minimumHurdleMoves;
         maximumHurdleMoves = other.maximumHurdleMoves;
         maximumDivingReward = other.maximumDivingReward;
-        turnsCnt = other.turnsCnt;
 
     }
     void    dbg() {
@@ -803,7 +802,7 @@ public:
         }
         map<char, double> moves;
         double sum = 0;
-        double bestVal = -std::numeric_limits<double>::infinity();
+        double bestVal = -1e9;
         char bestMove = 'R';
         for (auto &child : root->childs) {
             moves[child->move] += child->visitCount;
@@ -821,7 +820,7 @@ public:
 };
 
 void    checkWins(hurdleGame *hurdle, windGame *wind, divingGame *diving){
-    if (wind->gpu != "GAME_OVER" && (100 - game.turn < wind->gpu.size() || wind->guarentedWin())) wind->gpu = "GAME_OVER";
+    if (wind->gpu != "GAME_OVER" && (100 - game.turn < wind->gpu.size() || wind->guarentedWin()) || wind->gpu.size() >= 10) wind->gpu = "GAME_OVER";
     if (diving->gpu != "GAME_OVER" && (100 - game.turn < diving->gpu.size() || diving->guarentedWin())) diving->gpu = "GAME_OVER";
     if (hurdle->gpu != "GAME_OVER" && hurdle->guarentedWin(game)) hurdle->gpu = "GAME_OVER";
 
@@ -830,7 +829,7 @@ void    checkWins(hurdleGame *hurdle, windGame *wind, divingGame *diving){
 void    prioritize(hurdleGame *hurdle, windGame *wind, divingGame *diving) {
         int i = 0;
         vector<vector<int>> order;
-        if (wind->gpu != "GAME_OVER" && wind->gpu.size() <= 8) {
+        if (wind->gpu != "GAME_OVER") {
             int pos = wind->getCurPlace();
             int score = game.windMedals[0] * 3 + game.windMedals[1];
             // if (game.turn <= 60)
@@ -922,10 +921,7 @@ int main()
         for(auto &[l, r] : game.gamesOrder) r = 0;
         checkWins(game.hurdle, game.wind, game.diving);
         prioritize(game.hurdle, game.wind, game.diving);
-        int turnsCnt = 14;
-        if (game.wind->gpu != "GAME_OVER") turnsCnt = min(turnsCnt, (int)game.wind->gpu.size());
-        if (game.diving->gpu != "GAME_OVER") turnsCnt = min(turnsCnt, (int)game.diving->gpu.size());
-        miniGame mg(game.hurdle, game.wind, game.diving, turnsCnt);
+        miniGame mg(game.hurdle, game.wind, game.diving);
         // cerr << game.diving->gpu << ' ' << endl;
         // cerr << game.hurdle->gpu << ' ' << endl;
         // cerr << game.diving->gpu << ' ' << endl;
