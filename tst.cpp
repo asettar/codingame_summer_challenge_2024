@@ -109,8 +109,7 @@ struct hurdleGame {
         player_pos = pos[game.player_idx];
         if (gpu == "GAME_OVER") game.hurdleCnt++;
         if (!player_pos) {
-            game.hurdledp.resize(31);
-            fill(game.hurdledp.begin(), game.hurdledp.end(), -1);
+            game.hurdledp = vector<int>(30, -1);
         }
     }
    
@@ -667,7 +666,7 @@ public:
         double totScore = 0, curScore = 0;
         if (wind->gpu != "GAME_OVER") {
             curScore = wind->getScore();
-            totScore += curScore * game.gamesOrder['W'];
+            totScore += curScore * game.gamesOrder['E'];
         }
         if (diving->gpu != "GAME_OVER") {
             curScore = diving->getScore() / maximumDivingReward;
@@ -823,64 +822,57 @@ void    checkWins(hurdleGame *hurdle, windGame *wind, divingGame *diving){
     if (wind->gpu != "GAME_OVER" && (100 - game.turn < wind->gpu.size() || wind->guarentedWin()) || wind->gpu.size() >= 10) wind->gpu = "GAME_OVER";
     if (diving->gpu != "GAME_OVER" && (100 - game.turn < diving->gpu.size() || diving->guarentedWin())) diving->gpu = "GAME_OVER";
     if (hurdle->gpu != "GAME_OVER" && hurdle->guarentedWin(game)) hurdle->gpu = "GAME_OVER";
-
 }
 
 void    prioritize(hurdleGame *hurdle, windGame *wind, divingGame *diving) {
         int i = 0;
-        vector<vector<int>> order;
+        vector<pair<float, char>> order;
         if (wind->gpu != "GAME_OVER") {
-            int pos = wind->getCurPlace();
-            int score = game.windMedals[0] * 3 + game.windMedals[1];
-            // if (game.turn <= 60)
-            order.push_back({pos, score, 'W'});
-            // order.push_back({score, pos, 'W'});
+            float pos = wind->getCurPlace();
+            float medals = (float)(game.windMedals[0] * 3 + game.windMedals[1]) / 12.0;
+            order.push_back({pos * 0.49 + medals * 0.51 , 'E'});
         }
         if(hurdle->gpu != "GAME_OVER") {
-            int pos = hurdle->getCurPlace();
-            int score = game.hurdleMedals[0] * 3 + game.hurdleMedals[1];
-            // if (game.turn <= 60)
-                order.push_back({pos, score, 'H'});
-            // order.push_back({score, pos, 'H'});
+            float pos = hurdle->getCurPlace();
+            float medals = (float)(game.hurdleMedals[0] * 3 + game.hurdleMedals[1]) / 12.0;
+            order.push_back({pos * 0.49 + medals * 0.51 , 'H'});
         }
         if (diving->gpu != "GAME_OVER") { 
-            int pos = diving->getCurPlace();
-            int score = game.divingMedals[0] * 3 + game.divingMedals[1];
-            // if (game.turn <= 60)
-                order.push_back({pos, score, 'D'});
-            // order.push_back({score, pos, 'D'});
+            float pos = diving->getCurPlace();
+            float medals = (float)(game.divingMedals[0] * 3 + game.divingMedals[1]) / 3;
+                order.push_back({pos * 0.49 + medals * 0.51, 'D'});
         }
 
         sort(order.begin(), order.end());
-        vector<vector<int>> comp = order;
-        for(vector<int> &v : comp) v.pop_back();
-        if (order.size() == 1) game.gamesOrder[order[0][2]] = 1;
+        vector<float> comp;
+        for(auto &[l, r] : order) comp.push_back(l);
+        if (order.size() == 1) game.gamesOrder[order[0].second] = 1;
         else if (order.size() == 2) {
-            if (comp[0] == comp[1]){
-                game.gamesOrder[order[0][2]] = 0.5;
-                game.gamesOrder[order[1][2]] = 0.5;
+            if (comp[0] == comp[1]) {
+                game.gamesOrder[order[0].second] = 0.5;
+                game.gamesOrder[order[1].second] = 0.5;
             }
             else {
-                game.gamesOrder[order[0][2]] = 0.65;
-                game.gamesOrder[order[1][2]] = 0.35;
+                game.gamesOrder[order[0].second] = 0.6;
+                game.gamesOrder[order[1].second] = 0.4;
             }
                 
         }
         else if (order.size() == 3){
             if (comp[0] == comp[1] && comp[1] == comp[2]) {
-                game.gamesOrder[order[0][2]] = 0.333333;
-                game.gamesOrder[order[1][2]] = 0.333333;
-                game.gamesOrder[order[2][2]] = 0.333333;
+                game.gamesOrder[order[0].second] = 0.333333;
+                game.gamesOrder[order[1].second] = 0.333333;
+                game.gamesOrder[order[2].second] = 0.333333;
             }
             else if (comp[0] == comp[1]) {
-                game.gamesOrder[order[0][2]] = 0.425;
-                game.gamesOrder[order[1][2]] = 0.425;
-                game.gamesOrder[order[2][2]] = 0.15;
+                game.gamesOrder[order[0].second] = 0.425;
+                game.gamesOrder[order[1].second] = 0.425;
+                game.gamesOrder[order[2].second] = 0.15;
             }
             else {
-                game.gamesOrder[order[0][2]] = 0.6;
-                game.gamesOrder[order[1][2]] = 0.25;
-                game.gamesOrder[order[2][2]] = 0.15;
+                game.gamesOrder[order[0].second] = 0.54;
+                game.gamesOrder[order[1].second] = 0.30;
+                game.gamesOrder[order[2].second] = 0.18;
             }
         }
         // cerr << "Order\n";
@@ -893,7 +885,9 @@ void    prioritize(hurdleGame *hurdle, windGame *wind, divingGame *diving) {
         // }
         // for(auto&[l, r] : game.gamesOrder) cerr << l << ' ' <<r << endl;
 
-    }
+}
+
+
 
 int main()
 {

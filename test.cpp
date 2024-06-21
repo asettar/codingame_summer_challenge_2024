@@ -1,61 +1,109 @@
-#include <iostream>
-#include <algorithm>
-#include <vector>
-#include <string>
-#include <map>
-#include <set>
-#include <queue>
-#include <stack>
-#include <unordered_map>
-#include <unordered_set>
-#include <cmath>
-#include <climits>
-#include <iomanip>
-#include <random>
-using namespace std;
-#define int long long
-#define double long double
-#define vi vector <int>
-#define vb vector <bool>
-#define vs vector <string>
-#define vvi vector <vi>
-#define vvb vector <vb>
-#define vvs vector <vs>
-#define all(x) x.begin(), x.end()
-#define	rall(x) x.rbegin(), x.rend()
-#define endl '\n'
-const int mod = 1e9+7;
-const int maxn = 1e5 + 10;
+struct Node {
+    miniGame state;
+    Node* parent;
+    std::vector<Node*> childs;
+    int visitCount;
+    double winScore;
+    char move;
+    string possibleActions;
 
-vector<string> perm;
+    Node(const miniGame& state, Node* parent = nullptr, char move = ' ')
+        : parent(parent), state(state), move(move), visitCount(0), winScore(0){
+            possibleActions = "ULRD";
+        }
 
-
-
-void rec(int i, string &s) {
-    if (i == 4) {
-        cerr << i << ' ' << s << endl;
-        perm.push_back(s);
-        return;
+    bool isFullyExpanded() const {
+        return possibleActions.empty() && childs.size() > 0;
     }
-    for (char c : string("RLDU")) {
-        s += c;    // Set the character at position i
-        rec(i + 1, s);
-        s.pop_back();
+
+    Node *select() {
+        Node* bestNode = nullptr;
+        double bestValue = -std::numeric_limits<double>::infinity();
+        for (auto &child : childs) {
+            double uctValue = child->winScore / child->visitCount + 1.41 * sqrt(log(visitCount) / child->visitCount);
+            if (bestValue < uctValue) {
+                bestValue = uctValue;
+                bestNode = child;
+            }
+        }
+        return bestNode;
     }
+
+    Node *expand() {
+        int index = rand() % possibleActions.size();
+        char newMove = possibleActions[index];
+        possibleActions.erase(possibleActions.begin() + index);
+        miniGame newState = state;      
+        newState.playMove(newMove);
+        Node* newNode = new Node(newState, this, newMove);
+        childs.push_back(newNode);
+        return newNode;
+    }
+    void    backpropagate(double result) {
+        winScore += result;
+        visitCount++;
+        if (parent) parent->backpropagate(result);
+    }
+
+    double simulateMove() {
+        miniGame tmp = state;
+        int index = 0;
+        string moves = "ULDR";
+        while (!tmp.isTerminal()) {
+            int index = rand() % moves.size();
+            tmp.playMove(moves[index]);
+        }
+        double score = tmp.getMyScore();  /* score between 0 and 1 */
+        return score;
+    }
+};
+
+class MCTS {
+public:
+    MCTS() {}
+
+    string    findNextMove(miniGame& gm, int iterations) {
+        auto start = std::chrono::high_resolution_clock::now();
+        Node* root = new Node(gm);
+        for (int i = 0; i < iterations; i++) {
+     
+            Node* it = root;
+            while(it->isFullyExpanded()) {
+                it = it->select();
+            }
+            if (!it->state.isTerminal()) {
+                // cerr << "hh\n";
+                it = it->expand();
+            }
+            // cerr << "simulating " << it->state.isTerminal() << endl;
+            double result = it->simulateMove();
+            // cerr << "Probagating\n";
+            it->backpropagate(result);
+        }
+        map<char, double> moves;
+        double sum = 0;
+        double bestVal = -1e9;
+        char bestMove = 'R';
+        for (auto &child : root->childs) {
+            moves[child->move] += child->visitCount;
+            sum += child->visitCount;
+        }
+        for(auto &[l, r] : moves) {
+            if (r / sum > bestVal) {
+                bestVal = r / sum;
+                bestMove = l;
+            }
+        }
+        map<char, string> mp = {{'L', "LEFT"}, {'R', "RIGHT"}, {'D', "DOWN"}, {'U', "UP"}};
+        return mp[bestMove];
+    }
+};
+
+
+main() { 
+    cout << mct.findNextmove() << endl;
 }
 
-void generatePermutations() {
-    string s;
-    s.reserve(4);
-    rec(0, s);
-}
-
-
-int32_t	main()
-{
-    generatePermutations();
-    random_device rd;
-    mt19937 g(rd());
-    shuffle(perm.begin(), perm.end(), g);
-    for(string s : perm) cout <<s  << endl;
-}
+2  poshur : 4
+'R'
+4 : stun : 2
