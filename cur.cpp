@@ -108,11 +108,10 @@ struct hurdleGame {
         for(int i = 0; i < 3; i++) cin >> stun[i]; cin.ignore();
         cin >> unused; cin.ignore();
         player_pos = pos[game.player_idx];
-        cerr << player_pos << endl;
-        if (!player_pos) {
-            game.hurdledp = vector<int>(31, -1);
-        }
         if (gpu == "GAME_OVER") game.hurdleCnt++;
+        if (!player_pos) {
+            game.hurdledp = vector<int>(30, -1);
+        }
     }
    
     int getMyPos() {
@@ -846,7 +845,7 @@ void    prioritize(hurdleGame *hurdle, windGame *wind, divingGame *diving) {
             double pos = hurdle->getCurPlace() / 3.0;
             // double sc = (hurdle->getMyPos() / 29 + (count(hurdle->gpu.begin(), hurdle->gpu.end(), '#') / (hurdle->getMyPos() / 2.0))) / 2.0;
             // pos += sc * 0.5;
-            double toend = 1 - hurdle->getMyPos() / 32.0;
+            double toend = hurdle->getMyPos() / 32.0;
             double medals = min((double)(game.hurdleMedals[0] * 3 + game.hurdleMedals[1]) / 12.0, 1.0);
             order.push_back({pos * 0.5 + toend * 0.35 + medals * 0.15  , 'H'});
             sum += 1.0 - order.back().first;
@@ -855,7 +854,8 @@ void    prioritize(hurdleGame *hurdle, windGame *wind, divingGame *diving) {
         if (diving->gpu != "GAME_OVER") { 
             double pos = diving->getCurPlace() / 3.0;
             double medals = min((double)(game.divingMedals[0] * 3 + game.divingMedals[1]) / 12.0, 1.0);
-            order.push_back({pos * 0.4 + medals * 0.35 , 'D'});
+            double toend = 1.0 - wind->gpu.size() / 16.0;
+            order.push_back({pos * 0.4 + toend * 0.25  + medals * 0.35 , 'D'});
             sum += 1.0 - order.back().first;
         }
 
@@ -922,14 +922,14 @@ int main()
         }
         // cerr << "\n---------------\n";
         MCTS mct;
-        // game.diving->gpu = "GAME_OVER"; // tested
-        // game.hurdle->gpu = "GAME_OVER"; // tested
-        // game.wind->gpu = "GAME_OVER";  //  tested
+        // game.hurdle->gpu = "GAME_OVER"; //tested
+        // game.diving->gpu = "GAME_OVER"; //tested
+        // game.wind->gpu = "GAME_OVER";  //tested
         for(auto &[l, r] : game.gamesOrder) r = 0;
         checkWins(game.hurdle, game.wind, game.diving);
         prioritize(game.hurdle, game.wind, game.diving);
         int cnt = (game.hurdle->gpu == "GAME_OVER") + (game.wind->gpu == "GAME_OVER") + (game.diving->gpu == "GAME_OVER");
-        if (cnt == 2) {
+        if (cnt == 2 && 0) {
             if (game.hurdle->gpu != "GAME_OVER")
                 game.hurdle->play();
             else if (game.diving->gpu != "GAME_OVER")
@@ -943,10 +943,7 @@ int main()
             else cout << mct.findNextMove(mg, 6000) << endl;
         }
         game.turn++;
-        return 0;
     }
     return 0;
 }
-
-
 
