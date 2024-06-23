@@ -932,7 +932,7 @@ int main()
         checkWins(game.hurdle, game.wind, game.diving);
         prioritize(game.hurdle, game.wind, game.diving);
         int cnt = (game.hurdle->gpu == "GAME_OVER") + (game.wind->gpu == "GAME_OVER") + (game.diving->gpu == "GAME_OVER");
-        if (cnt == 2 && 0) {
+        if (cnt == 2) {
             if (game.hurdle->gpu != "GAME_OVER")
                 game.hurdle->play();
             else if (game.diving->gpu != "GAME_OVER")
