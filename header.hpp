@@ -1,10 +1,21 @@
-#pragma once
+#include <map>
+#include <chrono>
+#include <thread>
+#include <string> 
+#include <iostream>
+#include <string>
+#include <vector>
+#include <algorithm>
+#include <map>
+#include <cmath>
+#include <sstream>
+#include <cstring>
+#include <set>
+#include <random>
+using namespace std;
 
-#include "gamesInfo.hpp"
-#include "hurdleGame.hpp"
-#include "divingGame.hpp"
-#include "windGame.hpp"
-#include "miniGame.hpp"
-/*start*/
+map<char, string> mp = {{'L', "LEFT"}, {'R', "RIGHT"}, {'D', "DOWN"}, {'U', "UP"}};
 
-/*end*/
+struct hurdleGame;
+struct windGame;
+struct divingGame;
