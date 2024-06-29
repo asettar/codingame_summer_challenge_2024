@@ -1,159 +1,153 @@
-#pragma once
-#include "gamesInfo.hpp"
+#include "header.hpp"
 /*start*/
-gamesInfo game;
-
-using namespace std;
 struct hurdleGame {
     string gpu;
     int pos[3], stun[3];
     double  medals[3];
     int unused, player_pos; 
-    hurdleGame() {}
 
-    hurdleGame(gamesInfo &game) {
+    hurdleGame() {
         gpu = game.gpu;
         for(int i = 0; i < 3; i++) cin >> pos[i]; cin.ignore();
         for(int i = 0; i < 3; i++) cin >> stun[i]; cin.ignore();
         cin >> unused; cin.ignore();
-        player_pos = pos[game.player_idx];
-        if (gpu == "GAME_OVER") game.hurdleCnt++;
+        player_pos = pos[game.playerIdx];
         if (!player_pos) {
-            game.hurdledp.resize(31);
-            fill(game.hurdledp.begin(), game.hurdledp.end(), -1);
+            game.hurdledp = vector<int>(30, -1);
         }
     }
-
-    int getMinMoves(int pos, gamesInfo &game) {
-        if (pos >= gpu.size()) return 0;
-        // left
+   
+    int getMyPos() {
+        return pos[game.playerIdx];
+    }
+    int getMinMoves(int pos) {
+        if (pos >= 29) return 0;
         if (game.hurdledp[pos] != -1) return game.hurdledp[pos]; 
 
         int ans = 2e9;
         if (gpu[pos + 1] != '#')
-            ans = min(ans, 1 + getMinMoves(pos + 1, game));
+            ans = min(ans, 1 + getMinMoves(pos + 1));
         if (gpu[pos + 2] != '#')
-            ans = min(ans, 1 + getMinMoves(pos + 2, game));
+            ans = min(ans, 1 + getMinMoves(pos + 2));
         if (gpu[pos + 1] != '#' && gpu[pos + 2] != '#')
-            ans = min(ans, 1 + getMinMoves(pos + 2, game));
+            ans = min(ans, 1 + getMinMoves(pos + 2));
         if (gpu[pos + 1] != '#' && gpu[pos + 2] != '#' && gpu[pos + 3] != '#')
-            ans = min(ans, 1 + getMinMoves(pos + 3, game));
+            ans = min(ans, 1 + getMinMoves(pos + 3));
         return game.hurdledp[pos] = ans;
     }
 
-    void    play(gamesInfo& game) {
-        if (gpu == "GAME_OVER") return ;
-        if (guarentedWin(game)) return ;
-        cerr << "-----Hurdle-----------\n";
-        cerr << gpu << endl;
-        cerr << "   pos: " << player_pos << endl;
-
-        if (stun[game.player_idx] > 0) return;
-        cerr << gpu[player_pos + 2] << " min moves :" << getMinMoves(player_pos, game) << ' ' << getMinMoves(player_pos + 2, game) << endl;
-
+    int getMaxMoves(int idx) {
+        if (gpu == "GAME_OVER") return 0;
+        int ret = stun[idx];
+        for(int i = pos[idx] + 1; i <= 29; i++) {
+            ret++;
+            if (gpu[i] == '#') ret += 2;
+        }
+        return ret;
+    }
     
-        if (gpu[player_pos + 1] != '#' && getMinMoves(player_pos, game) == 1 + getMinMoves(player_pos + 1, game))
-            game.movesCnt["LEFT"] += 5;
-        if (gpu[player_pos + 2] != '#' && getMinMoves(player_pos, game) == 1 + getMinMoves(player_pos + 2, game))
-            game.movesCnt["UP"] += 5;
+    void    play() {
+        string ans = "RIGHT";
+        if (gpu[player_pos + 1] != '#' && getMinMoves(player_pos) == 1 + getMinMoves(player_pos + 1))
+            ans = "LEFT";
+        else if (gpu[player_pos + 2] != '#' && getMinMoves(player_pos) == 1 + getMinMoves(player_pos + 2))
+            ans = "UP";
+        else if (gpu[player_pos + 1] != '#' && gpu[player_pos + 2] != '#') {
+            if (getMinMoves(player_pos) == 1 + getMinMoves(player_pos + 2))
+                ans = "DOWN";
+            else ans = "RIGHT";
+        }
+        cout << ans << endl;
+    }
+
+    bool guarentedWinLose(gamesInfo &game) {
         
-        if (gpu[player_pos + 1] != '#' && gpu[player_pos + 2] != '#') {
+        int myMinNeed =  getMinMoves(pos[game.playerIdx]) + stun[game.playerIdx];
+        if (100 - game.turn < myMinNeed) return 1;
+        int myMaxNeed = getMaxMoves(game.playerIdx);
+        int opp1MinNeed = stun[(game.playerIdx + 1) % 3] + getMinMoves(pos[(game.playerIdx + 1) % 3]);
+        int opp2MinNeed = stun[(game.playerIdx + 2) % 3] + getMinMoves(pos[(game.playerIdx + 2) % 3]);
+        int oppMinNeed = min(opp2MinNeed, opp1MinNeed);
+        if (oppMinNeed >= myMaxNeed) return 1;
+        int opp1MaxNeed = getMaxMoves((game.playerIdx + 1) % 3);
+        int opp2MaxNeed = getMaxMoves((game.playerIdx + 2) % 3);
+        int oppMaxNeed = max(opp1MaxNeed, opp2MaxNeed);
+        if (oppMaxNeed < myMinNeed) return 1;
 
-            if (getMinMoves(player_pos, game) == 1 + getMinMoves(player_pos + 2, game))
-                game.movesCnt["DOWN"] += 5;
-            if (gpu[player_pos + 3] != '#' && getMinMoves(player_pos, game) == 1 + getMinMoves(player_pos + 3, game))
-                game.movesCnt["RIGHT"] += 5;
-        }
+        if ((myMaxNeed < opp1MinNeed && myMinNeed >= opp2MaxNeed) || (myMaxNeed < opp2MinNeed && myMinNeed >= opp1MaxNeed)) return 1;
+        game.minHurdleNeed = max(oppMinNeed, myMinNeed);
+        game.maxHurdleNeed = min(oppMaxNeed, myMaxNeed);
+        return 0;
     }
 
-    void    score(gamesInfo &game) {
-        if (gpu == "GAME_OVER" || stun[game.player_idx] > 0 || guarentedWin(game)) return;
-        int mv[4] = {3, 2, 2, 1};
-        int k = 0;
-        for(string s : {"RIGHT", "UP", "DOWN", "LEFT"}) {
-            int score = 0;
-            for(int j = player_pos + 1; j <= player_pos + mv[k]; j++) {
-                if (gpu[j] == '#') {
-                    if (s == "UP" && j == player_pos + 1) score += 0;
-                    else {
-                        score -= 3 * player_pos;
-                        break;
-                    }
-                }
-                if (j >= gpu.size() - 1) {
-                    score += 15;
-                    break;
-                }
-                score++;
-            }
-            if (score > 0)
-                game.movesCnt[s] += score;
-            k++;
+    void    dbg() {
+        cerr << "dbg\n";
+        for(int i = 0; i < 3; i++) {
+            cerr <<"player idx: " << i << ' ' << stun[i] << ' ' << pos[i] << endl;
         }
     }
-
-    bool guarentedWin(gamesInfo &game) {
-        int maxNeedForWin = stun[game.player_idx] + gpu.size() - player_pos;
-        for(int i = player_pos + 1; i < gpu.size(); i++) {
-            if (gpu[i] == '#') maxNeedForWin += 3;
-        }
-        
-        int opps1Need = stun[(game.player_idx + 1) % 3] + getMinMoves(pos[(game.player_idx + 1) % 3], game);
-        int opp2Need = stun[(game.player_idx + 2) % 3] + getMinMoves(pos[(game.player_idx + 2) % 3], game);
-        return (maxNeedForWin <= opps1Need && maxNeedForWin <= opp2Need);
-    }
-
     void    simulate(int idx, char move) {
+        if (gpu == "GAME_OVER") return ;
         if (stun[idx]) {
             stun[idx]--;
             return ;
         }
+        // cerr << "Hurdle :" << idx << ' ' << stun[idx] << ' ' << pos[idx] << ' ' << gpu << endl;
         int mv[4] = {3, 2, 2, 1};
         string moves = "RUDL";
         int k = moves.find(move);
-        int start = pos[idx] + 1;
-        for(int i = start; i <= pos[idx] + mv[k]; i++) {
-            if (i >= 29) break;
+        int start = pos[idx];
+        for(int i = start + 1; i <= start + mv[k]; i++) {
+            pos[idx]++;
+            if (i >= 29)
+                break;
             if (gpu[i] == '#') {
-                if (move != 'U' || i != start) {
-                    stun[idx] += 3;
+                if (move != 'U' || i != start + 1) {
+                    stun[idx] = 2;
                     break;
                 }
             }
-            pos[idx]++;
         }
     }
 
     bool isTerminal() {
-        for(int i = 0; i < 3; i++) {
-            if (pos[i] >= 29) return true;
-        }
-        return false;
+        return (pos[game.playerIdx] >= 29 || gpu == "GAME_OVER");
     }
     void    distributeMedals() {
         vector<pair<int, int>> positions;
         for(int i = 0; i < 3; i++) {
-            positions.push_back({pos[(game.player_idx + i) % 3], (game.player_idx + i) % 3});
+            positions.push_back({pos[i], i});
         }
         sort(positions.rbegin(), positions.rend());
         medals[positions[0].second] = 1;
-        if (positions[1].first >= 29) medals[positions[1].second] = 1;
+        if (positions[1].first == positions[0].first) medals[positions[1].second] = 1;
         else medals[positions[1].second] = 0.5;
-        if (positions[2].first >= 29) medals[positions[2].second] = 1;
+        if (positions[2].first == positions[0].first) medals[positions[2].second] = 1;
         else if (positions[2].first == positions[1].first)
             medals[positions[2].second] = 0.5;
         else medals[positions[2].second] = 0;
     }
 
+    int getCurPlace() {
+        int myPos = pos[game.playerIdx] - stun[game.playerIdx];
+        int opp1Pos = pos[(game.playerIdx + 1) % 3] - stun[(game.playerIdx + 1) % 3];
+        int opp2Pos = pos[(game.playerIdx + 2) % 3] - stun[(game.playerIdx + 2) % 3];
+        if (myPos >= max(opp1Pos, opp2Pos)) return 1;
+        else if (myPos >= min(opp1Pos, opp2Pos)) return 2;
+        else return 3;
+    }
     double  getMyMedals() {
-        return medals[game.player_idx];
+        for(int i = 0; i < 3; i++) {
+            if (pos[i] >= 29) return medals[game.playerIdx];
+        }
+        distributeMedals();
+        return medals[game.playerIdx];
     }
     double getOpp1Medals() {
-        return medals[(game.player_idx + 1) % 3];
+        return medals[(game.playerIdx + 1) % 3];
     }
     double getOpp2Medals() {
-        return medals[(game.player_idx + 2) % 3];
+        return medals[(game.playerIdx + 2) % 3];
     }
 };
-
 /*end*/

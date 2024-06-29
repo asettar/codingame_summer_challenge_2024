@@ -19,13 +19,13 @@ using namespace std;
 vector<string> files =
 {
     /* header-files*/
-    "./gamesInfo.hpp",
     "./header.hpp",
+    "./gamesInfo.hpp",
     "./hurdleGame.hpp",
     "./divingGame.hpp",
     "./windGame.hpp",
     "./miniGame.hpp",
-    /* mini-games - files */
+    "./mct.cpp",
 
     /*main-file*/
     "./main.cpp",

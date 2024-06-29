@@ -1,4 +1,4 @@
-// file-Name: ./gamesInfo.hpp
+// file-Name: ./header.hpp
 // ########################
 // ########################
 #include <map>
@@ -23,14 +23,13 @@ struct hurdleGame;
 struct windGame;
 struct divingGame;
 
+// file-Name: ./gamesInfo.hpp
+// ########################
+// ########################
 struct gamesInfo {
     std::string gpu;
-    int divingPrevGpu = 0;
-    int hurdleCnt = 0, windCnt = 0, diveCnt = 0;
-    int player_idx;
-    bool playingHurdle = 0;
+    int playerIdx;
     int turn = 0;
-    map<std::string, double> movesCnt;
     int hurdleMedals[3];
     int windMedals[3];
     int rollerMedals[3];
@@ -43,9 +42,11 @@ struct gamesInfo {
     divingGame *diving;
     map<char, double> gamesOrder;
     float maxWindDist, minWindDist;
-    gamesInfo() {
+    float minHurdleNeed, maxHurdleNeed;
+    float minDiving, maxDiving;
+    
+    gamesInfo() {}
 
-    }
     void    setMedals(const string &scoreInfo) {
         std::vector<int> scores;
         std::stringstream ss(scoreInfo);
@@ -86,51 +87,44 @@ struct gamesInfo {
     }
 
 };
-// file-Name: ./header.hpp
-// ########################
-// ########################
 
+gamesInfo game;
 // file-Name: ./hurdleGame.hpp
 // ########################
 // ########################
-gamesInfo game;
-
-using namespace std;
 struct hurdleGame {
     string gpu;
     int pos[3], stun[3];
     double  medals[3];
     int unused, player_pos; 
-    hurdleGame() {}
 
-    hurdleGame(gamesInfo &game) {
+    hurdleGame() {
         gpu = game.gpu;
         for(int i = 0; i < 3; i++) cin >> pos[i]; cin.ignore();
         for(int i = 0; i < 3; i++) cin >> stun[i]; cin.ignore();
         cin >> unused; cin.ignore();
-        player_pos = pos[game.player_idx];
-        if (gpu == "GAME_OVER") game.hurdleCnt++;
+        player_pos = pos[game.playerIdx];
         if (!player_pos) {
             game.hurdledp = vector<int>(30, -1);
         }
     }
    
     int getMyPos() {
-        return pos[game.player_idx];
+        return pos[game.playerIdx];
     }
-    int getMinMoves(int pos, gamesInfo &game) {
+    int getMinMoves(int pos) {
         if (pos >= 29) return 0;
         if (game.hurdledp[pos] != -1) return game.hurdledp[pos]; 
 
         int ans = 2e9;
         if (gpu[pos + 1] != '#')
-            ans = min(ans, 1 + getMinMoves(pos + 1, game));
+            ans = min(ans, 1 + getMinMoves(pos + 1));
         if (gpu[pos + 2] != '#')
-            ans = min(ans, 1 + getMinMoves(pos + 2, game));
+            ans = min(ans, 1 + getMinMoves(pos + 2));
         if (gpu[pos + 1] != '#' && gpu[pos + 2] != '#')
-            ans = min(ans, 1 + getMinMoves(pos + 2, game));
+            ans = min(ans, 1 + getMinMoves(pos + 2));
         if (gpu[pos + 1] != '#' && gpu[pos + 2] != '#' && gpu[pos + 3] != '#')
-            ans = min(ans, 1 + getMinMoves(pos + 3, game));
+            ans = min(ans, 1 + getMinMoves(pos + 3));
         return game.hurdledp[pos] = ans;
     }
 
@@ -146,58 +140,35 @@ struct hurdleGame {
     
     void    play() {
         string ans = "RIGHT";
-        if (gpu[player_pos + 1] != '#' && getMinMoves(player_pos, game) == 1 + getMinMoves(player_pos + 1, game))
+        if (gpu[player_pos + 1] != '#' && getMinMoves(player_pos) == 1 + getMinMoves(player_pos + 1))
             ans = "LEFT";
-        else if (gpu[player_pos + 2] != '#' && getMinMoves(player_pos, game) == 1 + getMinMoves(player_pos + 2, game))
+        else if (gpu[player_pos + 2] != '#' && getMinMoves(player_pos) == 1 + getMinMoves(player_pos + 2))
             ans = "UP";
         else if (gpu[player_pos + 1] != '#' && gpu[player_pos + 2] != '#') {
-            if (getMinMoves(player_pos, game) == 1 + getMinMoves(player_pos + 2, game))
+            if (getMinMoves(player_pos) == 1 + getMinMoves(player_pos + 2))
                 ans = "DOWN";
             else ans = "RIGHT";
         }
         cout << ans << endl;
     }
 
-    void    score(gamesInfo &game) {
-        if (gpu == "GAME_OVER" || stun[game.player_idx] > 0 || guarentedWin(game)) return;
-        int mv[4] = {3, 2, 2, 1};
-        int k = 0;
-        for(string s : {"RIGHT", "UP", "DOWN", "LEFT"}) {
-            int score = 0;
-            for(int j = player_pos + 1; j <= player_pos + mv[k]; j++) {
-                if (gpu[j] == '#') {
-                    if (s == "UP" && j == player_pos + 1) score += 0;
-                    else {
-                        score -= 3 * player_pos;
-                        break;
-                    }
-                }
-                if (j >= gpu.size() - 1) {
-                    score += 15;
-                    break;
-                }
-                score++;
-            }
-            if (score > 0)
-                game.movesCnt[s] += score;
-            k++;
-        }
-    }
-
-    bool guarentedWin(gamesInfo &game) {
+    bool guarentedWinLose(gamesInfo &game) {
         
-        int myMinNeed =  getMinMoves(pos[game.player_idx], game) + stun[game.player_idx];
+        int myMinNeed =  getMinMoves(pos[game.playerIdx]) + stun[game.playerIdx];
         if (100 - game.turn < myMinNeed) return 1;
-        int oppMinNeed = stun[(game.player_idx + 1) % 3] + getMinMoves(pos[(game.player_idx + 1) % 3], game);
-        oppMinNeed = min(oppMinNeed, stun[(game.player_idx + 2) % 3] + getMinMoves(pos[(game.player_idx + 2) % 3], game));
-
-        // cerr << "pos :" << pos[game.player_idx] << endl;
-        // cerr << myMinNeed << ' ' << oppMinNeed << ' ' << getMaxMoves(game.player_idx) << endl;
-        if (oppMinNeed >= getMaxMoves(game.player_idx)) return 1;
-        int oppMaxNeed = getMaxMoves((game.player_idx + 1) % 3);
-        oppMaxNeed = max(oppMaxNeed, getMaxMoves((game.player_idx + 2) % 3));
+        int myMaxNeed = getMaxMoves(game.playerIdx);
+        int opp1MinNeed = stun[(game.playerIdx + 1) % 3] + getMinMoves(pos[(game.playerIdx + 1) % 3]);
+        int opp2MinNeed = stun[(game.playerIdx + 2) % 3] + getMinMoves(pos[(game.playerIdx + 2) % 3]);
+        int oppMinNeed = min(opp2MinNeed, opp1MinNeed);
+        if (oppMinNeed >= myMaxNeed) return 1;
+        int opp1MaxNeed = getMaxMoves((game.playerIdx + 1) % 3);
+        int opp2MaxNeed = getMaxMoves((game.playerIdx + 2) % 3);
+        int oppMaxNeed = max(opp1MaxNeed, opp2MaxNeed);
         if (oppMaxNeed < myMinNeed) return 1;
-        // cerr << getMaxMoves(game.player_idx) << ' ' << oppMaxNeed << endl;
+
+        if ((myMaxNeed < opp1MinNeed && myMinNeed >= opp2MaxNeed) || (myMaxNeed < opp2MinNeed && myMinNeed >= opp1MaxNeed)) return 1;
+        game.minHurdleNeed = max(oppMinNeed, myMinNeed);
+        game.maxHurdleNeed = min(oppMaxNeed, myMaxNeed);
         return 0;
     }
 
@@ -232,7 +203,7 @@ struct hurdleGame {
     }
 
     bool isTerminal() {
-        return (pos[game.player_idx] >= 29 || gpu == "GAME_OVER");
+        return (pos[game.playerIdx] >= 29 || gpu == "GAME_OVER");
     }
     void    distributeMedals() {
         vector<pair<int, int>> positions;
@@ -250,66 +221,67 @@ struct hurdleGame {
     }
 
     int getCurPlace() {
-        int myPos = pos[game.player_idx] - stun[game.player_idx];
-        int opp1Pos = pos[(game.player_idx + 1) % 3] - stun[(game.player_idx + 1) % 3];
-        int opp2Pos = pos[(game.player_idx + 2) % 3] - stun[(game.player_idx + 2) % 3];
+        int myPos = pos[game.playerIdx] - stun[game.playerIdx];
+        int opp1Pos = pos[(game.playerIdx + 1) % 3] - stun[(game.playerIdx + 1) % 3];
+        int opp2Pos = pos[(game.playerIdx + 2) % 3] - stun[(game.playerIdx + 2) % 3];
         if (myPos >= max(opp1Pos, opp2Pos)) return 1;
         else if (myPos >= min(opp1Pos, opp2Pos)) return 2;
         else return 3;
     }
     double  getMyMedals() {
         for(int i = 0; i < 3; i++) {
-            if (pos[i] >= 29) return medals[game.player_idx];
+            if (pos[i] >= 29) return medals[game.playerIdx];
         }
         distributeMedals();
-        return medals[game.player_idx];
+        return medals[game.playerIdx];
     }
     double getOpp1Medals() {
-        return medals[(game.player_idx + 1) % 3];
+        return medals[(game.playerIdx + 1) % 3];
     }
     double getOpp2Medals() {
-        return medals[(game.player_idx + 2) % 3];
+        return medals[(game.playerIdx + 2) % 3];
     }
 };
-
 // file-Name: ./divingGame.hpp
 // ########################
 // ########################
-
 struct divingGame {
     int points[3], combo[3];
     double medals[3];
-    int unused, player_idx;
+    int unused, playerIdx;
     string gpu;
-    divingGame() {}
-    divingGame(gamesInfo &game) {
+    
+    divingGame() {
         gpu = game.gpu;
         for(int i = 0; i < 3; i++) cin >> points[i]; cin.ignore();
         for(int i = 0; i < 3; i++) cin >> combo[i]; cin.ignore();
         cin >> unused; cin.ignore();
-        if (gpu == "GAME_OVER") game.diveCnt++;
-        player_idx = game.player_idx;
+        playerIdx = game.playerIdx;
     }
 
-    bool guarentedWin() {
-        int opp1 = points[(player_idx + 1) % 3];
-        int opp2 = points[(player_idx + 2) % 3];
-        int combo1 = combo[(player_idx + 1) % 3];
-        int combo2 = combo[(player_idx + 2) % 3];
+    bool guarentedWinLose() {
+        int opp1 = points[(playerIdx + 1) % 3];
+        int opp2 = points[(playerIdx + 2) % 3];
+        int combo1 = combo[(playerIdx + 1) % 3];
+        int combo2 = combo[(playerIdx + 2) % 3];
         for(int i = 1; i <= gpu.size(); i++) {
             combo1++, combo2++;
             opp1 += combo1;
             opp2 += combo2;
         }
 
-        int myPoints = points[player_idx];
-        int myCombo = combo[player_idx];
-        bool ok = max(opp1, opp2) <= points[player_idx];
+        int myPoints = points[playerIdx];
+        int myCombo = combo[playerIdx];
+        bool ok = max(opp1, opp2) <= points[playerIdx];
         for(int i = 1; i <= gpu.size(); i++) {
             myCombo++;
             myPoints += myCombo;
         }
-        ok |= (myPoints < min(points[(player_idx + 1) % 3], points[(player_idx + 2) % 3]));
+        ok |= (myPoints < min(points[(playerIdx + 1) % 3], points[(playerIdx + 2) % 3]));
+        int pts = points[game.playerIdx];
+        ok |= ((myPoints < points[(game.playerIdx + 1) % 3] && pts >= opp2) || (myPoints < points[(game.playerIdx + 2) % 3] && pts >= opp1));
+        game.minDiving = min(points[playerIdx], max(points[(playerIdx + 1) % 3], points[(playerIdx + 2) % 3]));
+        game.maxDiving = min(myPoints, max(opp1, opp2));
         return (ok);
     }
 
@@ -318,7 +290,6 @@ struct divingGame {
     }
     void    simulate(int idx, char move) {
         if (gpu == "GAME_OVER") return ;
-        // cerr << "diving: " << idx << ' ' << gpu << endl;
         if (move == gpu[0])
             combo[idx]++;
         else combo[idx] = 0;
@@ -330,7 +301,7 @@ struct divingGame {
     }
 
     double getScore() {
-        double score = double(points[game.player_idx]) - game.diving->points[game.player_idx];
+        double score = double(points[game.playerIdx]) - game.diving->points[game.playerIdx];
         return score;
     }
 
@@ -346,15 +317,15 @@ struct divingGame {
 
     int getMaximumNeed() {
         if (gpu == "GAME_OVER") return 0;
-        int opp1 = getMaximumReward((game.player_idx + 1) % 3) + points[(game.player_idx + 1) % 3];
-        int opp2 = getMaximumReward((game.player_idx + 2) % 3) + points[(game.player_idx + 2) % 3];
-        return max(opp1, opp2) - points[game.player_idx];
+        int opp1 = getMaximumReward((game.playerIdx + 1) % 3) + points[(game.playerIdx + 1) % 3];
+        int opp2 = getMaximumReward((game.playerIdx + 2) % 3) + points[(game.playerIdx + 2) % 3];
+        return max(opp1, opp2) - points[game.playerIdx];
     }
 
     int getCurPlace() {
-        int myPoints = points[game.player_idx] + combo[game.player_idx];
-        int opp1Points = points[(game.player_idx + 1) % 3] + combo[(game.player_idx + 1) % 3];
-        int opp2Points = points[(game.player_idx + 2) % 3] + combo[(game.player_idx + 2) % 3];
+        int myPoints = points[game.playerIdx] + combo[game.playerIdx];
+        int opp1Points = points[(game.playerIdx + 1) % 3] + combo[(game.playerIdx + 1) % 3];
+        int opp2Points = points[(game.playerIdx + 2) % 3] + combo[(game.playerIdx + 2) % 3];
         if (myPoints >= max(opp1Points, opp2Points)) return 1;
         else if (myPoints >= min(opp1Points, opp2Points)) return 2;
         else return 3;
@@ -376,16 +347,15 @@ struct divingGame {
     }
 
     double  getMyMedals() {
-        return medals[game.player_idx];
+        return medals[game.playerIdx];
     }
     double getOpp1Medals() {
-        return medals[(game.player_idx + 1) % 3];
+        return medals[(game.playerIdx + 1) % 3];
     }
     double getOpp2Medals() {
-        return medals[(game.player_idx + 2) % 3];
+        return medals[(game.playerIdx + 2) % 3];
     }
 };
-
 // file-Name: ./windGame.hpp
 // ########################
 // ########################
@@ -394,23 +364,21 @@ struct windGame {
     int unused;
     int posx[3], posy[3];
     int player_x, player_y;
-    int player_idx;
+    int playerIdx;
     int dx[4] = {1, 0, 0, -1};
     int dy[4] = {0, -1, 1, 0};
     double medals[3];
 
-    windGame() {}
-    windGame(gamesInfo &game) {
+    windGame() {
         gpu = game.gpu;
         for(int i = 0; i < 3; i++) {
             cin >> posx[i]; cin.ignore();
             cin >> posy[i]; cin.ignore();
         }
         cin >> unused; cin.ignore();
-        if (gpu == "GAME_OVER") game.windCnt++;
-        player_x = posx[game.player_idx];
-        player_y = posy[game.player_idx];
-        player_idx = game.player_idx;
+        player_x = posx[game.playerIdx];
+        player_y = posy[game.playerIdx];
+        playerIdx = game.playerIdx;
     }
 
     int getMovesLeft() {
@@ -420,7 +388,7 @@ struct windGame {
         return sumLeft;
     }
 
-    bool guarentedWin() {
+    bool guarentedWinLose() {
         float winddp[16][41][41];
         // memset(winddp, -1, sizeof(winddp));
         for(int i = 0; i < 16; i++) {
@@ -428,9 +396,10 @@ struct windGame {
                 for(int k = 0; k < 41; k++)  winddp[i][j][k] = -1;
             }
         }
-        float myMaxDist = maximumDistance(0, posx[game.player_idx], posy[game.player_idx], winddp);
-        float oppMaxDist = maximumDistance(0, posx[(game.player_idx + 1) % 3], posy[(game.player_idx + 1) % 3], winddp);
-        oppMaxDist = max(oppMaxDist,  maximumDistance(0, posx[(game.player_idx + 2) % 3], posy[(game.player_idx + 2) % 3], winddp));
+        float myMaxDist = maximumDistance(0, posx[game.playerIdx], posy[game.playerIdx], winddp);
+        float opp1MaxDist = maximumDistance(0, posx[(game.playerIdx + 1) % 3], posy[(game.playerIdx + 1) % 3], winddp);
+        float opp2MaxDist =  maximumDistance(0, posx[(game.playerIdx + 2) % 3], posy[(game.playerIdx + 2) % 3], winddp);
+        float oppMaxDist = max(opp2MaxDist, opp1MaxDist);
         // memset(winddp, -1, sizeof(winddp));
 
         for(int i = 0; i < 16; i++) {
@@ -439,9 +408,10 @@ struct windGame {
             }
         }
 
-        float oppMinDist = minimumDistance(0, posx[(game.player_idx + 1) % 3], posy[(game.player_idx + 1) % 3], winddp);
-        oppMinDist = min(oppMinDist,  minimumDistance(0, posx[(game.player_idx + 2) % 3], posy[(game.player_idx + 2) % 3], winddp));
-        float   myMinDist =  minimumDistance(0, posx[game.player_idx], posy[game.player_idx], winddp);
+        float opp1MinDist = minimumDistance(0, posx[(game.playerIdx + 1) % 3], posy[(game.playerIdx + 1) % 3], winddp);
+        float opp2MinDist = minimumDistance(0, posx[(game.playerIdx + 2) % 3], posy[(game.playerIdx + 2) % 3], winddp);
+        float oppMinDist = min(opp1MinDist, opp2MinDist);
+        float   myMinDist =  minimumDistance(0, posx[game.playerIdx], posy[game.playerIdx], winddp);
         bool ok = (myMaxDist <= oppMinDist);
         ok |= (myMinDist > oppMaxDist);
     
@@ -449,18 +419,22 @@ struct windGame {
         bool can = 1;
         int k = 0;
          for(char c : string("RUDL")) {
-            int nx = posx[game.player_idx] + (gpu[0] - '0') * dx[k];
-            int ny = posy[game.player_idx] +  (gpu[0] - '0') * dy[k];
+            int nx = posx[game.playerIdx] + (gpu[0] - '0') * dx[k];
+            int ny = posy[game.playerIdx] +  (gpu[0] - '0') * dy[k];
             nx = min(nx, 20);
             nx = max(nx, -20);
             ny = min(ny, 20);
             ny = max(ny, -20);
-            can &= (minimumDistance(1, nx, ny, winddp) < oppMinDist);
+            can &= (abs(minimumDistance(1, nx, ny, winddp) - myMinDist) <= 1e-4);
             k++;
         }
-        ok |= can;
-        game.maxWindDist = myMaxDist;
-        game.minWindDist = myMinDist;
+        // ok |= can;
+        game.maxWindDist = min(myMaxDist, oppMaxDist);
+        game.minWindDist = max(oppMinDist, myMinDist);
+
+        // guarentedSilver;
+        if ((myMaxDist < opp1MinDist && myMinDist >= opp2MaxDist) || (myMaxDist < opp2MinDist && myMinDist >= opp1MaxDist)) ok = 1;
+
         return ok;
     }
     double getDistance(int x, int y) {
@@ -545,8 +519,8 @@ struct windGame {
         char bestAct = 'U';
         int i = 0;
         for (char c : {'R', 'U', 'D', 'L'}) {
-            int nx = posx[game.player_idx] + (gpu[0] - '0') * dx[i];
-            int ny = posy[game.player_idx] + (gpu[0] - '0') * dy[i];
+            int nx = posx[game.playerIdx] + (gpu[0] - '0') * dx[i];
+            int ny = posy[game.playerIdx] + (gpu[0] - '0') * dy[i];
             nx = min(nx, 20);
             nx = max(nx, -20);
             ny = min(ny, 20);
@@ -569,8 +543,10 @@ struct windGame {
     double  getScore() {
         if (gpu == "GAME_OVER") return 0;
         if (game.maxWindDist == game.minWindDist) return 1;
-        float   dist = getDistance(posx[game.player_idx], posy[game.player_idx]);
+        float   dist = getDistance(posx[game.playerIdx], posy[game.playerIdx]);
         double  score = (game.maxWindDist - dist) / (game.maxWindDist - game.minWindDist);
+        if (score > 1) score = 1;
+        if (score < 0) score = 0;
         return score;
     }
     int getCurPlace() {
@@ -595,17 +571,18 @@ struct windGame {
     }
 
     double  getMyMedals() {
-        return medals[game.player_idx];
+        return medals[game.playerIdx];
     }
     double getOpp1Medals() {
-        return medals[(game.player_idx + 1) % 3];
+        return medals[(game.playerIdx + 1) % 3];
     }
     double getOpp2Medals() {
-        return medals[(game.player_idx + 2) % 3];
+        return medals[(game.playerIdx + 2) % 3];
     }
 };
-
-
+// file-Name: ./miniGame.hpp
+// ########################
+// ########################
 class miniGame {
     hurdleGame *hurdle;
     windGame *wind;
@@ -623,9 +600,9 @@ public:
         this->hurdleEnd = 0;
         this->windEnd = 0;
         this->divingEnd = 0;
-        this->minimumHurdleMoves = hurdle->getMinMoves(hurdle->pos[game.player_idx], game);
-        this->maximumHurdleMoves = min(25, hurdle->getMaxMoves(game.player_idx));
-        this->maxDivingPoints = diving->getMaximumReward(game.player_idx) + diving->points[game.player_idx];
+        this->minimumHurdleMoves = hurdle->getMinMoves(hurdle->pos[game.playerIdx]);
+        this->maximumHurdleMoves = min(25, hurdle->getMaxMoves(game.playerIdx));
+        this->maxDivingPoints = diving->getMaximumReward(game.playerIdx) + diving->points[game.playerIdx];
         this->turnsCnt = 0;
     }
 
@@ -650,13 +627,13 @@ public:
             if (hurdle->gpu == "GAME_OVER" || turnsCnt == 25) hurdleEnd = 1;
             else {
                 turnsCnt++;
-                hurdle->simulate(game.player_idx, move);
+                hurdle->simulate(game.playerIdx, move);
             }
         }
         if (!windEnd) {
             if (wind->gpu == "GAME_OVER") windEnd = 1;
             else {
-                wind->simulate(game.player_idx, move);
+                wind->simulate(game.playerIdx, move);
                 wind->nextTurn();
             }
         }
@@ -664,7 +641,7 @@ public:
         if (!divingEnd) {
             if (diving->gpu == "GAME_OVER") divingEnd = 1;
             else {
-                diving->simulate(game.player_idx, move);
+                diving->simulate(game.playerIdx, move);
                 diving->nextTurn();
             }
         }
@@ -681,18 +658,18 @@ public:
             totScore += curScore * game.gamesOrder['E'];
         }
         if (diving->gpu != "GAME_OVER") {
-            curScore = 1.0 - (double)(maxDivingPoints - diving->points[game.player_idx]) / (double)(maxDivingPoints - game.diving->points[game.player_idx]);
+            curScore = 1.0 - (double)(game.maxDiving - diving->points[game.playerIdx]) / (double)(game.maxDiving - game.minDiving);
+            if (curScore > 1) curScore = 1;
+            if (curScore < 0) curScore = 0;
             totScore += curScore * game.gamesOrder['D'];
-            // cerr << curScore << ' ' << maxDivingPoints << ' ' << diving->points[game.player_idx] << endl;
         }
         if (hurdle->gpu != "GAME_OVER") {
             if (minimumHurdleMoves == turnsCnt) curScore = 1;
-            else curScore = (double)(maximumHurdleMoves - turnsCnt) / (maximumHurdleMoves - minimumHurdleMoves);
-            // cerr << turnsCnt << ' ' << minimumHurdleMoves << ' ' << maximumHurdleMoves << endl;
-            // cerr << "score: " <<  score << endl;
+            else curScore = (double)(game.maxHurdleNeed - turnsCnt) / (game.maxHurdleNeed - game.minHurdleNeed);
+            if (curScore > 1) curScore = 1;
+            if (curScore < 0) curScore = 0;
             totScore += curScore * game.gamesOrder['H'];
         }
-        // cerr << score << endl;
         return (totScore);
     }
 
@@ -711,16 +688,19 @@ void    setupGame(int gameNumber) {
     cin >> game.gpu; cin.ignore();
     
     if (gameNumber == 0)
-        game.hurdle = new hurdleGame(game);
+        game.hurdle = new hurdleGame();
     else if (gameNumber == 1)
-        game.wind = new windGame(game);
+        game.wind = new windGame();
     else if (gameNumber == 2) {
         int num;
         for(int i = 0; i < 7; i++) cin >> num;
     }
     else
-        game.diving = new divingGame(game);
+        game.diving = new divingGame();
 }
+// file-Name: ./mct.cpp
+// ########################
+// ########################
 
 struct Node {
     miniGame state;
@@ -790,7 +770,6 @@ public:
         auto start = std::chrono::high_resolution_clock::now();
         Node* root = new Node(gm);
         for (int i = 0; i < iterations; i++) {
-            // cerr << "searching, iteration num :" << i << endl;
             auto now = std::chrono::high_resolution_clock::now();
             auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(now - start).count();
 
@@ -803,12 +782,9 @@ public:
                 it = it->select();
             }
             if (!it->state.isTerminal()) {
-                // cerr << "hh\n";
                 it = it->expand();
             }
-            // cerr << "simulating " << it->state.isTerminal() << endl;
             double result = it->simulateMove();
-            // cerr << "Probagating\n";
             it->backpropagate(result);
         }
         map<char, double> moves;
@@ -828,15 +804,16 @@ public:
         return mp[bestMove];
     }
 };
-
-void    checkWins(hurdleGame *hurdle, windGame *wind, divingGame *diving){
-    if (wind->gpu != "GAME_OVER" && (100 - game.turn < wind->gpu.size() || wind->guarentedWin())) wind->gpu = "GAME_OVER";
-    if (diving->gpu != "GAME_OVER" && (100 - game.turn < diving->gpu.size() || diving->guarentedWin())) diving->gpu = "GAME_OVER";
-    if (hurdle->gpu != "GAME_OVER" && (hurdle->guarentedWin(game) || hurdle->stun[game.player_idx])) hurdle->gpu = "GAME_OVER";
+// file-Name: ./main.cpp
+// ########################
+// ########################
+void    checkWinsLoses(hurdleGame *hurdle, windGame *wind, divingGame *diving){
+    if (wind->gpu != "GAME_OVER" && (100 - game.turn < wind->gpu.size() || wind->guarentedWinLose())) wind->gpu = "GAME_OVER";
+    if (diving->gpu != "GAME_OVER" && (100 - game.turn < diving->gpu.size() || diving->guarentedWinLose())) diving->gpu = "GAME_OVER";
+    if (hurdle->gpu != "GAME_OVER" && (hurdle->stun[game.playerIdx] || hurdle->guarentedWinLose(game))) hurdle->gpu = "GAME_OVER";
 }
 
-void    prioritize(hurdleGame *hurdle, windGame *wind, divingGame *diving) {
-        int i = 0;
+void    prioritizeGames(hurdleGame *hurdle, windGame *wind, divingGame *diving) {
         vector<pair<double, char>> order;
         float sum = 0;
         if (wind->gpu != "GAME_OVER") {
@@ -845,13 +822,11 @@ void    prioritize(hurdleGame *hurdle, windGame *wind, divingGame *diving) {
             order.push_back({toend * 0.3 + medals * 0.7 , 'E'});
             sum += 1.0 - order.back().first;
         }
-        if(hurdle->gpu != "GAME_OVER" && !hurdle->stun[game.player_idx]) {
+        if(hurdle->gpu != "GAME_OVER" && !hurdle->stun[game.playerIdx]) {
             double pos = hurdle->getCurPlace() / 3.0;
-            // double sc = (hurdle->getMyPos() / 29 + (count(hurdle->gpu.begin(), hurdle->gpu.end(), '#') / (hurdle->getMyPos() / 2.0))) / 2.0;
-            // pos += sc * 0.5;
-            double toend = 1 - hurdle->getMyPos() / 32.0;
+            double toend = 1 - hurdle->getMyPos() / 31.0;
             double medals = min((double)(game.hurdleMedals[0] * 3 + game.hurdleMedals[1]) / 12.0, 1.0);
-            order.push_back({pos * 0.35 + toend * 0.3 + medals * 0.35  , 'H'});
+            order.push_back({pos * 0.3 + toend * 0.4 + medals * 0.3, 'H'});
             sum += 1.0 - order.back().first;
 
         }
@@ -863,76 +838,43 @@ void    prioritize(hurdleGame *hurdle, windGame *wind, divingGame *diving) {
         }
 
         sort(order.begin(), order.end());
-        for(auto &[l, r] : order) {
-            game.gamesOrder[r] = (1 - l) / sum;
+        // cerr << order.size() << ' ' << sum << ' ' << game.gamesOrder.size() << endl;
+        if (sum){
+            for(auto &[l, r] : order)
+                game.gamesOrder[r] = (1 - l) / sum;
         }
-        // vector<float> comp;
-        // for(auto &[l, r] : order) comp.push_back(l);
-        // if (order.size() == 1) game.gamesOrder[order[0].second] = 1;
-        // else if (order.size() == 2) {
-        //     if (comp[0] == comp[1]) {
-        //         game.gamesOrder[order[0].second] = 0.5;
-        //         game.gamesOrder[order[1].second] = 0.5;
-        //     }
-        //     else {
-        //         game.gamesOrder[order[0].second] = 0.55;
-        //         game.gamesOrder[order[1].second] = 0.45;
-        //     }
-                
-        // }
-        // else if (order.size() == 3){
-        //     if (comp[0] == comp[1] && comp[1] == comp[2]) {
-        //         game.gamesOrder[order[0].second] = 0.333333;
-        //         game.gamesOrder[order[1].second] = 0.333333;
-        //         game.gamesOrder[order[2].second] = 0.333333;
-        //     }
-        //     else if (comp[0] == comp[1]) {
-        //         game.gamesOrder[order[0].second] = 0.42;
-        //         game.gamesOrder[order[1].second] = 0.42;
-        //         game.gamesOrder[order[2].second] = 0.16;
-        //     }
-        //     else {
-        //         game.gamesOrder[order[0].second] = 0.55;
-        //         game.gamesOrder[order[1].second] = 0.30;
-        //         game.gamesOrder[order[2].second] = 0.15;
-        //     }
-        // }
-        cerr << "Order\n";
-        for(auto&[l, r] : game.gamesOrder) cerr << l << ' ' << r << endl;
+        
+        // cerr << "Order\n";
+        // for(auto&[l, r] : game.gamesOrder) cerr << l << ' ' << r << endl;
 
 }
-
 
 
 int main()
 {
     srand(time(0));
-    cin >> game.player_idx; cin.ignore();
+    cin >> game.playerIdx; cin.ignore();
     int nb_games;
     cin >> nb_games; cin.ignore();
     // game.generatePermutations();
     // game loop
     while (1) {
-        game.movesCnt.clear();
         for (int i = 0; i < 3; i++) {
             string scoreInfo;
             getline(cin, scoreInfo);
-            if (i == game.player_idx)
+            if (i == game.playerIdx)
                 game.setMedals(scoreInfo);
         }
         for (int i = 0; i < nb_games; i++) {
             setupGame(i);
         }
-        // cerr << "\n---------------\n";
         MCTS mct;
-        // game.hurdle->gpu = "GAME_OVER"; //tested
-        // game.diving->gpu = "GAME_OVER"; //tested
-        // game.wind->gpu = "GAME_OVER";  //tested
-        for(auto &[l, r] : game.gamesOrder) r = 0;
-        checkWins(game.hurdle, game.wind, game.diving);
-        prioritize(game.hurdle, game.wind, game.diving);
-        int cnt = (game.hurdle->gpu == "GAME_OVER") + (game.wind->gpu == "GAME_OVER") + (game.diving->gpu == "GAME_OVER");
-        if (cnt == 2) {
+        game.gamesOrder.clear();
+        checkWinsLoses(game.hurdle, game.wind, game.diving);
+        prioritizeGames(game.hurdle, game.wind, game.diving);
+        int cntOverGames = (game.hurdle->gpu == "GAME_OVER") + (game.wind->gpu == "GAME_OVER") + (game.diving->gpu == "GAME_OVER");
+       
+        if (cntOverGames == 2) {
             if (game.hurdle->gpu != "GAME_OVER")
                 game.hurdle->play();
             else if (game.diving->gpu != "GAME_OVER")
@@ -940,7 +882,6 @@ int main()
             else game.wind->play();
         }
         else {
-            // cerr << game.maxWindDist << ' ' << game.minWindDist << endl;
             miniGame mg(game.hurdle, game.wind, game.diving);
             if (game.turn == 0)
                     cout << mct.findNextMove(mg, 10000) << endl;
@@ -950,4 +891,3 @@ int main()
     }
     return 0;
 }
-

@@ -1,31 +1,9 @@
-#pragma once
+#include "header.hpp"
 /*start*/
-#include <map>
-#include <string> 
-#include <iostream>
-#include <string>
-#include <vector>
-#include <algorithm>
-#include <map>
-#include <cmath>
-#include <sstream>
-#include <cstring>
-#include <set>
-#include <random>
-
-using namespace std;
-
-struct hurdleGame;
-struct windGame;
-struct divingGame;
-
 struct gamesInfo {
     std::string gpu;
-    int divingPrevGpu = 0;
-    int hurdleCnt = 0, windCnt = 0, diveCnt = 0;
-    int player_idx;
-    bool playingHurdle = 0;
-    map<std::string, double> movesCnt;
+    int playerIdx;
+    int turn = 0;
     int hurdleMedals[3];
     int windMedals[3];
     int rollerMedals[3];
@@ -36,10 +14,13 @@ struct gamesInfo {
     hurdleGame *hurdle;
     windGame *wind;
     divingGame *diving;
+    map<char, double> gamesOrder;
+    float maxWindDist, minWindDist;
+    float minHurdleNeed, maxHurdleNeed;
+    float minDiving, maxDiving;
+    
+    gamesInfo() {}
 
-    gamesInfo() {
-
-    }
     void    setMedals(const string &scoreInfo) {
         std::vector<int> scores;
         std::stringstream ss(scoreInfo);
@@ -80,4 +61,6 @@ struct gamesInfo {
     }
 
 };
+
+gamesInfo game;
 /*end*/

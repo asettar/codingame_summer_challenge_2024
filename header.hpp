@@ -1,3 +1,4 @@
+/*start*/
 #include <map>
 #include <chrono>
 #include <thread>
@@ -19,3 +20,5 @@ map<char, string> mp = {{'L', "LEFT"}, {'R', "RIGHT"}, {'D', "DOWN"}, {'U', "UP"
 struct hurdleGame;
 struct windGame;
 struct divingGame;
+
+/*end*/
